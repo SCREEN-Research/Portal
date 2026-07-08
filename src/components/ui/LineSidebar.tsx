@@ -33,7 +33,7 @@ interface LineSidebarProps {
   fontSize?: number;
   /** Time-constant for the hover-driven effect (snappy). Default 90ms. */
   hoverSmoothing?: number;
-  /** Time-constant for the active-item transition (smooth glide). Default 750ms. */
+  /** Time-constant for the active-item glide (smooth). Default 750ms. */
   activeSmoothing?: number;
   /**
    * Backward-compat alias. If set and the new props are not, this is used as both.
@@ -69,12 +69,22 @@ export const LineSidebar: React.FC<LineSidebarProps> = ({
   // Per-item target from hover (0..1) and current rendered value (0..1)
   const hoverTargetRef = useRef<number[]>([]);
   const currentRef = useRef<number[]>([]);
-  // Per-item active value tracking — uses its own smoothing so click feels smooth
-  // while hover feels snappy.
-  const activeRef = useRef<number[]>([]);
-  const activeTargetRef = useRef<number[]>([]);
+  // Single floating-point "active position" — represents a position on a continuous index
+  // scale (0..N-1), so the marker can glide smoothly from one item to another. The visual
+  // marker is drawn as an overlay positioned by this float.
+  const activePosRef = useRef<number>(0);
+  const activePosTargetRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
   const lastRef = useRef<number>(0);
+
+  // Marker overlay element (a single absolutely-positioned line that travels the list)
+  const markerOverlayRef = useRef<HTMLDivElement | null>(null);
+  // Active label indicator overlay — moves with the marker and highlights the current label
+  const activeLabelOverlayRef = useRef<HTMLDivElement | null>(null);
+  // Number-of-items the marker has positions for
+  const lastItemsLenRef = useRef<number>(-1);
+  // Last known active index
+  const lastActiveIdxRef = useRef<number>(-1);
 
   const activeIndex = items.findIndex(item => item.id === activeId);
 
@@ -82,25 +92,21 @@ export const LineSidebar: React.FC<LineSidebarProps> = ({
   const hoverTau = (hoverSmoothing ?? smoothing ?? 90) / 1000;
   const activeTau = (activeSmoothing ?? smoothing ?? 750) / 1000;
 
-  // When activeId or items change, update the active target and snap current to follow
-  // the previous active exactly (so the new active glides in from where the old one was).
-  const lastActiveIdRef = useRef<string | undefined>(activeId);
+  // On items change or active change, update the active position target
   useEffect(() => {
-    if (lastActiveIdRef.current !== activeId) {
-      // Carry over the previous active's value into the new active's current value,
-      // so the marker slides from the old location to the new one smoothly.
-      const prevIdx = items.findIndex(item => item.id === lastActiveIdRef.current);
-      const newIdx = items.findIndex(item => item.id === activeId);
-      if (prevIdx >= 0 && newIdx >= 0 && currentRef.current[prevIdx] !== undefined) {
-        currentRef.current[newIdx] = currentRef.current[prevIdx];
-      }
-      lastActiveIdRef.current = activeId;
+    if (lastItemsLenRef.current !== items.length) {
+      activePosRef.current = activeIndex >= 0 ? activeIndex : 0;
+      activePosTargetRef.current = activeIndex >= 0 ? activeIndex : 0;
+      lastItemsLenRef.current = items.length;
+      lastActiveIdxRef.current = activeIndex;
+      return;
     }
-    // Reset the active target to 1 for the active item, 0 for others
-    activeTargetRef.current = items.map((_, i) => (i === activeIndex ? 1 : 0));
-    // Initialize current active value if not set
-    if (activeRef.current.length !== items.length) {
-      activeRef.current = items.map((_, i) => (i === activeIndex ? 1 : 0));
+    if (lastActiveIdxRef.current !== activeIndex) {
+      // New active index — glide there
+      if (activeIndex >= 0) {
+        activePosTargetRef.current = activeIndex;
+      }
+      lastActiveIdxRef.current = activeIndex;
     }
   }, [activeId, items, activeIndex]);
 
@@ -114,21 +120,60 @@ export const LineSidebar: React.FC<LineSidebarProps> = ({
 
       let moving = false;
       const itemEls = itemRefs.current;
+    
 
+      // --- Active glide: interpolate activePos toward activePosTarget ---
+      const activeDelta = activePosTargetRef.current - activePosRef.current;
+      const activeNext = activePosRef.current + activeDelta * kActive;
+      const activeSettled = Math.abs(activeDelta) < 0.0015;
+      const activeValue = activeSettled ? activePosTargetRef.current : activeNext;
+      activePosRef.current = activeValue;
+      if (!activeSettled) moving = true;
+
+      // --- Render the marker overlay: position by activeValue ---
+      const overlay = markerOverlayRef.current;
+      if (overlay && itemEls.length > 0 && activeValue >= 0 && activeValue < itemEls.length) {
+        const lo = Math.floor(activeValue);
+        const hi = Math.min(lo + 1, itemEls.length - 1);
+        const frac = activeValue - lo;
+        const a = itemEls[lo];
+        const b = itemEls[hi];
+        if (a && b) {
+          const aTop = a.offsetTop;
+          const aHeight = a.offsetHeight;
+          const bTop = b.offsetTop;
+          const bHeight = b.offsetHeight;
+          const top = aTop + (bTop - aTop) * frac;
+          const height = aHeight + (bHeight - aHeight) * frac;
+          overlay.style.transform = `translateY(${top}px)`;
+          overlay.style.height = `${height}px`;
+          overlay.style.opacity = '1';
+        }
+      } else if (overlay) {
+        overlay.style.opacity = '0';
+      }
+
+      // --- Active label overlay: highlight the current active item's label color/transform ---
+      // Find the nearest integer index to activeValue
+      const nearestIdx = Math.round(activeValue);
+      const labelOverlay = activeLabelOverlayRef.current;
+      if (labelOverlay && nearestIdx >= 0 && nearestIdx < itemEls.length) {
+        const target = itemEls[nearestIdx];
+        if (target) {
+          labelOverlay.style.transform = `translateY(${target.offsetTop}px)`;
+          labelOverlay.style.height = `${target.offsetHeight}px`;
+          labelOverlay.style.opacity = activeSettled ? '0' : '0.0';
+        }
+      }
+
+      // --- Per-item hover glide ---
       for (let i = 0; i < itemEls.length; i++) {
         const el = itemEls[i];
         if (!el) continue;
+        const labelEl = el.querySelector('.line-sidebar__label') as HTMLElement | null;
+        if (!labelEl) continue;
 
-        // Active value glides on its own slow track
-        const activeTarget = activeTargetRef.current[i] ?? 0;
-        const activeCur = activeRef.current[i] ?? 0;
-        const activeNext = activeCur + (activeTarget - activeCur) * kActive;
-        const activeSettled = Math.abs(activeTarget - activeNext) < 0.0008;
-        const activeValue = activeSettled ? activeTarget : activeNext;
-        activeRef.current[i] = activeValue;
-        if (!activeSettled) moving = true;
-
-        // Hover value glides on its own snappy track
+        // Hover glide (snappy)
         const hoverTarget = hoverTargetRef.current[i] ?? 0;
         const hoverCur = currentRef.current[i] ?? 0;
         const hoverNext = hoverCur + (hoverTarget - hoverCur) * kHover;
@@ -137,9 +182,21 @@ export const LineSidebar: React.FC<LineSidebarProps> = ({
         currentRef.current[i] = hoverValue;
         if (!hoverSettled) moving = true;
 
-        // Combine: active wins over hover (it owns the slot when active)
-        const combined = Math.max(activeValue, hoverValue);
-        el.style.setProperty('--effect', combined.toFixed(4));
+        // The label's --effect is hover-driven only. The active marker is a separate overlay.
+        // BUT we also want the active label to look "highlighted" — that's handled by a CSS
+        // class on the active item, not by the --effect variable.
+        labelEl.style.setProperty('--effect', hoverValue.toFixed(4));
+
+        // Subtle color tinting on items near the active glide position
+        const distFromActive = Math.abs(i - activeValue);
+        // For items that are very close to the active position, push their label color towards
+        // accent. This creates a soft "wake" trailing the marker.
+        if (distFromActive < 1.2) {
+          const wake = Math.max(0, 1 - distFromActive / 1.2);
+          labelEl.style.setProperty('--active-wake', wake.toFixed(4));
+        } else {
+          labelEl.style.setProperty('--active-wake', '0');
+        }
       }
 
       if (moving) {
@@ -196,17 +253,22 @@ export const LineSidebar: React.FC<LineSidebarProps> = ({
     if (currentRef.current.length !== items.length) {
       currentRef.current = items.map(() => 0);
     }
-    if (activeRef.current.length !== items.length) {
-      activeRef.current = items.map((_, i) => (i === activeIndex ? 1 : 0));
-    }
-    if (activeTargetRef.current.length !== items.length) {
-      activeTargetRef.current = items.map((_, i) => (i === activeIndex ? 1 : 0));
-    }
     startLoop();
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [items, startLoop, activeIndex]);
+  }, [items, startLoop]);
+
+  const handleItemClick = useCallback(
+    (id: string, index: number) => {
+      // Trigger active glide to the clicked item
+      activePosTargetRef.current = index;
+      lastActiveIdxRef.current = index;
+      startLoop();
+      onSelect?.(id, index);
+    },
+    [onSelect, startLoop]
+  );
 
   const cssVars = {
     '--accent-color': accentColor,
@@ -218,11 +280,12 @@ export const LineSidebar: React.FC<LineSidebarProps> = ({
     '--max-shift': `${maxShift}px`,
     '--item-gap': `${itemGap}px`,
     '--font-size': `${fontSize}px`,
-    // Used by CSS for the hover-driven label transition only.
     '--smoothing': `${Math.round(hoverTau * 1000)}ms`,
-    // Used for the active-driven transform (smooth glide on click).
     '--active-smoothing': `${Math.round(activeTau * 1000)}ms`,
   } as React.CSSProperties;
+
+  // Compute the static marker line segments (the thin horizontal lines between items).
+  // These stay static — only the active highlight glides.
 
   return (
     <ul
@@ -232,6 +295,15 @@ export const LineSidebar: React.FC<LineSidebarProps> = ({
       className={`line-sidebar ${showMarker ? 'line-sidebar--markers' : ''} ${scaleTick ? 'line-sidebar--scale-tick' : ''} w-full py-2`}
       style={cssVars}
     >
+      {/* Active marker overlay — a single element that glides between items. */}
+      {showMarker && (
+        <div
+          ref={markerOverlayRef}
+          className="line-sidebar__active-marker"
+          aria-hidden="true"
+        />
+      )}
+
       {items.map((item, index) => {
         const isActive = activeId === item.id;
         const Icon = item.icon;
@@ -240,10 +312,9 @@ export const LineSidebar: React.FC<LineSidebarProps> = ({
             key={item.id}
             ref={(el) => { itemRefs.current[index] = el; }}
             className="line-sidebar__item"
-            aria-current={isActive ? 'true' : undefined}
-            onClick={() => onSelect?.(item.id, index)}
+            data-active={isActive ? 'true' : undefined}
+            onClick={() => handleItemClick(item.id, index)}
           >
-            {showMarker && <span className="line-sidebar__marker" aria-hidden="true" />}
             <span className="line-sidebar__label">
               {showIndex && (
                 <span className="line-sidebar__index">

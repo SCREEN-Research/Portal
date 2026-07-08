@@ -17,17 +17,43 @@
   padding-left: calc(var(--marker-length) + var(--marker-gap) + 16px);
   transition: background-color 0.18s ease;
   margin-bottom: var(--item-gap);
+  z-index: 1;
 }
 
 .line-sidebar__item:last-child {
   margin-bottom: 0;
 }
 
-.line-sidebar__item[aria-current="true"] {
+/* Active highlight — the gliding overlay. */
+.line-sidebar__active-marker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0;
   background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform, height, opacity;
 }
 
-.line-sidebar__item:hover:not([aria-current="true"]) {
+/* The accent-colored line that travels with the active item */
+.line-sidebar__active-marker::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  height: 1px;
+  width: var(--marker-length);
+  background-color: var(--accent-color);
+  transform: translateY(-50%) scaleX(1);
+  transform-origin: left center;
+  transition: none;
+  will-change: transform, background-color;
+}
+
+.line-sidebar__item:hover:not([data-active="true"]) {
   background-color: rgba(255, 255, 255, 0.04);
 }
 
@@ -39,7 +65,12 @@
   align-items: center;
   font-size: var(--font-size);
   line-height: 1.2;
-  color: color-mix(in srgb, var(--accent-color) calc(var(--effect, 0) * 100%), var(--text-color));
+  /* color: hover-driven (effect) blended with the active "wake" that trails the gliding marker */
+  color: color-mix(
+    in srgb,
+    var(--accent-color) calc((var(--effect, 0) * 0.6 + var(--active-wake, 0) * 0.7) * 100%),
+    var(--text-color)
+  );
   transform: translateX(calc(var(--effect, 0) * var(--max-shift)));
   width: 100%;
   will-change: transform, color;
@@ -54,18 +85,6 @@
 
 .line-sidebar__icon {
   color: color-mix(in srgb, var(--accent-color) calc(var(--effect, 0) * 100%), var(--text-color));
-}
-
-.line-sidebar__marker {
-  position: absolute;
-  top: 50%;
-  left: 10px;
-  height: 1px;
-  width: var(--marker-length);
-  background-color: color-mix(in srgb, var(--accent-color) calc(var(--effect, 0) * 100%), var(--marker-color));
-  transform-origin: left center;
-  transform: translateY(-50%) scaleX(calc(0.7 + var(--effect, 0) * 0.5));
-  will-change: transform, background-color;
 }
 
 .line-sidebar--markers .line-sidebar__item:not(:last-child)::after {

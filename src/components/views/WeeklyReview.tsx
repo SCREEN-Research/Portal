@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { CheckCircle2, MessageSquare, Clock, Sparkles, Calendar } from 'lucide-react';
+import { CheckCircle2, MessageSquare, Clock, Sparkles, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 
 // Returns the Monday of the week containing `date`.
@@ -31,15 +31,26 @@ const getISOWeekId = (date: Date): string => {
   return `${d.getUTCFullYear()}-W${String(weekNum).padStart(2, '0')}`;
 };
 
+// Returns the ISO 8601 week number for a given date.
+const getISOWeekNumber = (date: Date): number => {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+};
+
+const fmtDay = (d: Date) => d.getDate();
+const fmtWeekday = (d: Date) => d.toLocaleDateString(undefined, { weekday: 'short' });
+const fmtMonth = (d: Date) => d.toLocaleDateString(undefined, { month: 'short' });
+
+// Format date range as a clear, multi-part string.
+// e.g. start=Mon Jul 6, end=Sun Jul 12, 2026
 const fmtRange = (start: Date, end: Date) => {
-  const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
-  const startStr = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  const endStr = end.toLocaleDateString(undefined, {
-    month: sameMonth ? undefined : 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
-  return `${startStr} – ${endStr}`;
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const startStr = `${fmtWeekday(start)}, ${fmtMonth(start)} ${fmtDay(start)}`;
+  const endStr = `${fmtWeekday(end)}, ${fmtMonth(end)} ${fmtDay(end)}${sameYear ? '' : ', ' + end.getFullYear()}`;
+  return { startStr, endStr, year: end.getFullYear() };
 };
 
 export const WeeklyReview: React.FC = () => {
@@ -52,15 +63,40 @@ export const WeeklyReview: React.FC = () => {
   const [isEditingShalini, setIsEditingShalini] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
 
-  const weekStart = useMemo(() => getWeekStart(new Date()), []);
-  const weekEnd = useMemo(() => getWeekEnding(new Date()), []);
+  // Track which week is being viewed. Stored as an offset from the current week (0 = this week,
+  // -1 = previous week, +1 = next week). Auto-jumps to current week on mount and re-mounts.
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  // Re-anchor to the current week whenever the underlying date changes (covers overnight rollover,
+  // app reopens after a long time, etc.).
+  useEffect(() => {
+    setWeekOffset(0);
+  }, []);
+
+  const weekAnchor = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + weekOffset * 7);
+    return d;
+  }, [weekOffset]);
+
+  const weekStart = useMemo(() => getWeekStart(weekAnchor), [weekAnchor]);
+  const weekEnd = useMemo(() => getWeekEnding(weekAnchor), [weekAnchor]);
   const fullRange = useMemo(() => fmtRange(weekStart, weekEnd), [weekStart, weekEnd]);
+  const isoWeekNumber = useMemo(() => getISOWeekNumber(weekStart), [weekStart]);
 
   const isSupervisor = role === 'supervisor';
   const researcher: 'Miral' | 'Shalini' = role === 'shalini' ? 'Shalini' : 'Miral';
 
-  // The current reflection — lookup by ISO weekId of the current week.
+  // The current reflection — lookup by ISO weekId of the selected week.
   const currentWeekId = useMemo(() => getISOWeekId(weekStart), [weekStart]);
+
+  // The full sorted list of weekIds that exist in the data, plus the currently-viewed week,
+  // so we can tell when we're browsing an old/future week that has no record yet.
+  const allWeekIds = useMemo(() => {
+    const ids = new Set<string>(weeklyReflections.map(r => r.weekId));
+    ids.add(currentWeekId);
+    return Array.from(ids).sort();
+  }, [weeklyReflections, currentWeekId]);
 
   const myReflection = useMemo(
     () => {
@@ -72,7 +108,7 @@ export const WeeklyReview: React.FC = () => {
          r.shaliniReflection?.done || r.shaliniReflection?.blockers || r.shaliniReflection?.next ||
          r.supervisorCommentMiral || r.supervisorCommentShalini || r.supervisorComment)
       );
-      return filled || weeklyReflections[0] || {
+      return filled || {
         weekId: currentWeekId,
         miralReflection: { done: '', blockers: '', next: '' },
         shaliniReflection: { done: '', blockers: '', next: '' },
@@ -92,6 +128,20 @@ export const WeeklyReview: React.FC = () => {
   useEffect(() => {
     if (!isEditingShalini) setSupervisorCommentShalini(myReflection.supervisorCommentShalini || '');
   }, [myReflection.supervisorCommentShalini, isEditingShalini]);
+
+  // Detect "future week" — researcher is browsing ahead of the current week, so we should
+  // hide the editable fields (and not show a "pending" status that implies it should be filled in).
+  const isFutureWeek = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return weekStart.getTime() > today.getTime();
+  }, [weekStart]);
+
+  const isPastWeek = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return weekEnd.getTime() < today.getTime();
+  }, [weekEnd]);
 
   const handleReflectionChange = (
     person: 'Miral' | 'Shalini',
@@ -156,11 +206,18 @@ export const WeeklyReview: React.FC = () => {
 
   const showReviewedBadge = isSupervisor && myReflection.isReviewed;
 
+  // Determine week context label
+  const weekContextLabel = isFutureWeek
+    ? 'Future week'
+    : isPastWeek
+    ? 'Past week'
+    : 'Current week';
+
   return (
     <div className="fade-in space-y-8">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
+        <div className="min-w-0">
           <p className="text-[10.5px] font-semibold tracking-[0.18em] uppercase text-apple-secondary mb-2 inline-flex items-center gap-1.5">
             <Calendar size={10} />
             Weekly review
@@ -169,10 +226,41 @@ export const WeeklyReview: React.FC = () => {
             {isSupervisor ? 'Weekly Reviews' : 'Weekly Review'}
           </h1>
           <p className="text-[13.5px] text-apple-gray mt-2.5 font-mono tabular-nums">
-            {fullRange}
+            Week {isoWeekNumber} of {weekStart.getFullYear()} · {weekContextLabel}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          {/* Week navigator */}
+          <div className="inline-flex items-center rounded-md bg-white/[0.04] border border-white/[0.06] overflow-hidden">
+            <button
+              onClick={() => setWeekOffset(o => o - 1)}
+              className="p-1.5 text-apple-secondary hover:text-white/85 hover:bg-white/[0.04] transition-colors"
+              aria-label="Previous week"
+              title="Previous week"
+            >
+              <ChevronLeft size={13} />
+            </button>
+            <button
+              onClick={() => setWeekOffset(0)}
+              disabled={weekOffset === 0}
+              className={`px-2.5 py-1 text-[11.5px] font-medium border-x border-white/[0.06] transition-colors tabular-nums ${
+                weekOffset === 0
+                  ? 'text-white/95 bg-white/[0.04] cursor-default'
+                  : 'text-apple-secondary hover:text-white/85 hover:bg-white/[0.04]'
+              }`}
+              title="Jump to current week"
+            >
+              Today
+            </button>
+            <button
+              onClick={() => setWeekOffset(o => o + 1)}
+              className="p-1.5 text-apple-secondary hover:text-white/85 hover:bg-white/[0.04] transition-colors"
+              aria-label="Next week"
+              title="Next week"
+            >
+              <ChevronRight size={13} />
+            </button>
+          </div>
           {savedAgo && (
             <div className="hidden sm:inline-flex items-center gap-1.5 text-[11.5px] text-apple-tertiary">
               <Clock size={11} />
@@ -192,6 +280,51 @@ export const WeeklyReview: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Day-from-to header — large, clear, unambiguous */}
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 sm:px-5 py-3.5 flex items-center gap-3 sm:gap-5 flex-wrap">
+        <div className="flex items-center gap-3 sm:gap-5 flex-1 min-w-0">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-semibold tracking-[0.18em] uppercase text-apple-tertiary leading-none">
+              Day from
+            </span>
+            <span className="text-[15px] sm:text-[16px] font-semibold text-white tracking-tight mt-1.5">
+              {fullRange.startStr}
+            </span>
+          </div>
+          <div className="text-apple-tertiary/60 self-center text-[18px] font-light">→</div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-semibold tracking-[0.18em] uppercase text-apple-tertiary leading-none">
+              Day to
+            </span>
+            <span className="text-[15px] sm:text-[16px] font-semibold text-white tracking-tight mt-1.5">
+              {fullRange.endStr}
+            </span>
+          </div>
+          <div className="hidden sm:block w-px h-8 bg-white/[0.06]" />
+          <div className="flex flex-col">
+            <span className="text-[10px] font-semibold tracking-[0.18em] uppercase text-apple-tertiary leading-none">
+              Year
+            </span>
+            <span className="text-[15px] sm:text-[16px] font-semibold text-white tracking-tight mt-1.5 tabular-nums">
+              {fullRange.year}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-[10px] font-mono text-apple-tertiary uppercase tracking-[0.12em]">
+            7 days · {weekStart.toLocaleDateString(undefined, { month: 'short' })}
+          </span>
+        </div>
+      </div>
+
+      {/* Future-week notice */}
+      {isFutureWeek && (
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[12.5px] text-apple-tertiary flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
+          <span>This week hasn't started yet. You can pre-fill reflections, but they'll only become meaningful once the week begins.</span>
+        </div>
+      )}
 
       {/* Reflections section */}
       {isSupervisor ? (
@@ -397,6 +530,40 @@ export const WeeklyReview: React.FC = () => {
               </p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Recent weeks history (if there are any) — for context */}
+      {allWeekIds.length > 1 && (
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+          <p className="text-[10.5px] font-semibold tracking-[0.18em] uppercase text-apple-secondary mb-2.5">
+            Reflection history · {allWeekIds.length} {allWeekIds.length === 1 ? 'week' : 'weeks'} on record
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {allWeekIds.slice().reverse().map(wid => {
+              const isCurrent = wid === currentWeekId;
+              // Compute label for this week
+              const [yearStr, wkStr] = wid.split('-W');
+              return (
+                <button
+                  key={wid}
+                  onClick={() => {
+                    // jump to the week whose ISO id matches wid
+                    const target = allWeekIds.indexOf(wid);
+                    const currentIdx = allWeekIds.indexOf(currentWeekId);
+                    setWeekOffset(prev => prev + (target - currentIdx));
+                  }}
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-mono tabular-nums transition-colors ${
+                    isCurrent
+                      ? 'bg-white/[0.08] border border-white/[0.14] text-white'
+                      : 'bg-white/[0.02] border border-white/[0.04] text-apple-secondary hover:bg-white/[0.04] hover:text-white/85'
+                  }`}
+                >
+                  W{wkStr} {yearStr}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

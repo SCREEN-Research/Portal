@@ -101,14 +101,14 @@ export const Landing: React.FC = () => {
               </div>
 
               <h1 className="text-[34px] sm:text-[44px] md:text-[52px] font-semibold tracking-[-0.035em] leading-[1.02] text-white text-balance max-w-3xl">
-                Living alongside
+                Mapping the boundaries
                 <br />
-                wildlife, deliberately.
+                of coexistence.
               </h1>
 
               <p className="mt-4 text-[14px] sm:text-[15px] text-white/70 max-w-xl leading-relaxed text-pretty">
-                A quiet, structured workspace for the SCREEN team's day-to-day
-                research, fieldwork, and design work.
+                Research portal for SCREEN, integrating empirical fieldwork with
+                localized wildlife technology design.
               </p>
             </div>
 

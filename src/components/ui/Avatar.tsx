@@ -19,9 +19,9 @@ interface AvatarProps {
  * - Slightly soft ring + bottom hairline for a premium, Notion/Apple look.
  */
 const PHOTO_URL: Record<'Miral' | 'Shalini' | 'Chathura', string> = {
-  Miral: '/Miral.jpg',
-  Shalini: '/shalini.jpg',
-  Chathura: '/Chathura.jpg'
+  Miral: 'Miral.jpg',
+  Shalini: 'shalini.jpg',
+  Chathura: 'Chathura.jpg'
 };
 
 const FALLBACK_LETTER: Record<'Miral' | 'Shalini' | 'Chathura', string> = {

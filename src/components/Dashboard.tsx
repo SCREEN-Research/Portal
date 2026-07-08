@@ -181,7 +181,7 @@ export const Dashboard: React.FC = () => {
           title="Go to Landing Page"
         >
           <img
-            src="/picture1.png"
+            src="picture1.png"
             alt="SCREEN"
             className="w-12 h-12 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)] shrink-0 translate-y-[1.5px]"
           />
@@ -277,7 +277,7 @@ export const Dashboard: React.FC = () => {
               aria-label="Go to Landing Page"
             >
               <img
-                src="/picture1.png"
+                src="picture1.png"
                 alt="SCREEN"
                 className="w-7 h-7 object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]"
               />

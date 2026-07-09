@@ -676,7 +676,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
 
           <div className="mt-4 space-y-6">
             {activeTab === 'Daily' && (
-              <div className="space-y-10">
+              <div className="space-y-0">
                 {sortedDates.map(dateKey => {
                   const isT = isToday(dateKey);
                   const isY = isYesterday(dateKey);
@@ -693,22 +693,24 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                   });
 
                   return (
-                    <section key={dateKey} className="space-y-4">
-                      <div className="flex items-center gap-3 pb-2 border-b border-white/[0.04]">
-                        <div className="flex flex-col">
-                          <span className="text-[13px] font-semibold text-white tracking-tight leading-none">
+                    <section key={dateKey}>
+                      <div className="flex items-center gap-3 px-3 py-2 mb-1 rounded-md bg-white/[0.025] border border-white/[0.06]">
+                        <div className="flex items-baseline gap-2">
+                          <span className={`text-[12px] font-semibold tracking-tight leading-none ${
+                            isT ? 'text-emerald-400' : 'text-white/80'
+                          }`}>
                             {dayLabel}
                           </span>
-                          <span className="text-[12px] font-mono text-apple-secondary tabular-nums mt-1.5">
+                          <span className="text-[11px] font-mono text-apple-tertiary tabular-nums">
                             {dateLabel}
                           </span>
                         </div>
                         <div className="flex-1" />
-                        <span className="text-[12px] font-mono text-apple-tertiary tabular-nums px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06]">
+                        <span className="text-[11px] font-mono text-apple-tertiary tabular-nums">
                           {groupedLogs[dateKey].length} {groupedLogs[dateKey].length === 1 ? 'entry' : 'entries'}
                         </span>
                       </div>
-                      <div className="space-y-0">
+                      <div className="space-y-0 mb-6">
                         {groupedLogs[dateKey].map(log => renderLogCard(log))}
                       </div>
                     </section>
@@ -718,21 +720,21 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
             )}
 
             {activeTab === 'Weekly' && (
-              <div className="space-y-10">
+              <div className="space-y-0">
                 {sortedWeekKeys.map(weekKey => {
                   const week = weeklyGrouped[weekKey];
                   return (
-                    <section key={weekKey} className="space-y-4">
-                      <div className="flex items-center gap-3 pb-2 border-b border-white/[0.04]">
-                        <span className="text-[13px] font-semibold text-white tracking-tight leading-none">
+                    <section key={weekKey}>
+                      <div className="flex items-center gap-3 px-3 py-2 mb-1 rounded-md bg-white/[0.025] border border-white/[0.06]">
+                        <span className="text-[12px] font-semibold text-white/80 tracking-tight leading-none">
                           {week.label}
                         </span>
                         <div className="flex-1" />
-                        <span className="text-[12px] font-mono text-apple-tertiary tabular-nums px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06]">
+                        <span className="text-[11px] font-mono text-apple-tertiary tabular-nums">
                           {week.items.length} {week.items.length === 1 ? 'entry' : 'entries'}
                         </span>
                       </div>
-                      <div className="space-y-0">
+                      <div className="space-y-0 mb-6">
                         {week.items.map(log => renderLogCard(log))}
                       </div>
                     </section>
@@ -742,21 +744,21 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
             )}
 
             {activeTab === 'Monthly' && (
-              <div className="space-y-10">
+              <div className="space-y-0">
                 {sortedMonthKeys.map(monthKey => {
                   const m = monthlyGrouped[monthKey];
                   return (
-                    <section key={monthKey} className="space-y-4">
-                      <div className="flex items-center gap-3 pb-2 border-b border-white/[0.04]">
-                        <span className="text-[13px] font-semibold text-white tracking-tight leading-none">
+                    <section key={monthKey}>
+                      <div className="flex items-center gap-3 px-3 py-2 mb-1 rounded-md bg-white/[0.025] border border-white/[0.06]">
+                        <span className="text-[12px] font-semibold text-white/80 tracking-tight leading-none">
                           {m.label}
                         </span>
                         <div className="flex-1" />
-                        <span className="text-[12px] font-mono text-apple-tertiary tabular-nums px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06]">
+                        <span className="text-[11px] font-mono text-apple-tertiary tabular-nums">
                           {m.items.length} {m.items.length === 1 ? 'entry' : 'entries'}
                         </span>
                       </div>
-                      <div className="space-y-0">
+                      <div className="space-y-0 mb-6">
                         {m.items.map(log => renderLogCard(log))}
                       </div>
                     </section>

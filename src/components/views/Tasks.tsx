@@ -4,7 +4,6 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { 
   Circle, 
   CheckCircle2, 
-  CircleDashed, 
   XCircle, 
   ChevronRight, 
   ChevronDown, 
@@ -16,13 +15,12 @@ import {
 import type { TaskItem, TaskStatus, TaskPriority } from '../../data/initialState';
 import { Avatar } from '../ui/Avatar';
 
-const STATUS_GROUPS: TaskStatus[] = ['Backlog', 'Todo', 'In Progress', 'Done', 'Canceled'];
+const STATUS_GROUPS: TaskStatus[] = ['Todo', 'In Progress', 'Done', 'Canceled'];
 const PRIORITIES: TaskPriority[] = ['Urgent', 'High', 'Medium', 'Low', 'No priority'];
 
 const StatusIcon = ({ status, className = '' }: { status: TaskStatus, className?: string }) => {
   const size = 15;
   switch (status) {
-    case 'Backlog': return <CircleDashed size={size} className={`text-apple-tertiary ${className}`} />;
     case 'Todo': return <Circle size={size} className={`text-apple-secondary ${className}`} />;
     case 'In Progress': return <CircleDot size={size} className={`text-amber-400 ${className}`} />;
     case 'Done': return <CheckCircle2 size={size} className={`text-emerald-500 ${className}`} />;
@@ -228,7 +226,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, defaultAssignee, onClose, o
               <button
                 type="button"
                 onClick={() => onDelete(task.id)}
-                className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-md text-[12px] font-medium transition-colors flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/15 border border-red-500/20 text-red-400 rounded-lg text-[12px] font-medium transition-colors flex items-center gap-1.5"
               >
                 <Trash2 size={13} />
                 <span>Delete Task</span>
@@ -245,7 +243,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, defaultAssignee, onClose, o
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 bg-white text-apple-base rounded-md text-[12px] font-semibold hover:bg-white/90 transition-colors"
+              className="px-4 py-1.5 bg-white/[0.08] text-white/95 border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.14] rounded-lg text-[12px] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-colors"
             >
               {task ? 'Save Changes' : 'Create Task'}
             </button>
@@ -541,7 +539,7 @@ export const Tasks: React.FC = () => {
         </div>
         <button 
           onClick={handleOpenNewTask}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-apple-base rounded-md text-[12px] font-medium hover:bg-white/90 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.08] text-white/95 border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.14] rounded-lg text-[12px] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-colors"
         >
           <Plus size={14} />
           <span>New Task</span>

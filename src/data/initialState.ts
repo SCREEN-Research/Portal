@@ -53,7 +53,7 @@ export interface MeetingEvent {
   outcome: string;
 }
 
-export type TaskStatus = 'Backlog' | 'Todo' | 'In Progress' | 'Done' | 'Canceled';
+export type TaskStatus = 'Todo' | 'In Progress' | 'Done' | 'Canceled';
 export type TaskPriority = 'No priority' | 'Urgent' | 'High' | 'Medium' | 'Low';
 
 export interface TaskItem {
@@ -316,7 +316,7 @@ export const initialWorkspaceData: WorkspaceData = {
       id: 'tsk-6',
       identifier: 'TSK-006',
       title: 'Explore Unity particle systems for foliage',
-      status: 'Backlog',
+      status: 'Todo',
       priority: 'No priority',
       assignee: 'Miral',
       date: '',

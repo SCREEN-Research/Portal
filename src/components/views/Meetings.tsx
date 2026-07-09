@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Download, Plus, ExternalLink, MapPin, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '../ui/Toast';
-
+import { useLocation } from 'react-router-dom';
 import { ManageCategoriesModal } from '../ui/ManageCategoriesModal';
 
 const ATTENDEES = ['Shalini', 'Miral', 'Dr. Chathura'] as const;
@@ -15,6 +15,23 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
   const { role, data, addMeeting, exportToCSV } = useWorkspace();
   const { push } = useToast();
   const { meetings, categories } = data;
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.highlightMeetingId) {
+      const meetId = location.state.highlightMeetingId;
+      setTimeout(() => {
+        const el = document.getElementById(`meeting-row-${meetId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'shadow-[0_0_12px_rgba(16,185,129,0.15)]');
+          setTimeout(() => {
+            el.classList.remove('bg-emerald-500/10', 'border-emerald-500/30', 'shadow-[0_0_12px_rgba(16,185,129,0.15)]');
+          }, 2000);
+        }
+      }, 150);
+    }
+  }, [location.state]);
 
   const [isOpen, setIsOpen] = useState(false);
   const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false);
@@ -317,6 +334,7 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
                     return (
                       <div
                         key={meet.id}
+                        id={`meeting-row-${meet.id}`}
                         className="rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1] p-4 transition-colors"
                       >
                         <div className="flex items-start gap-3">

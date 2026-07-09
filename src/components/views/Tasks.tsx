@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
+import { useLocation } from 'react-router-dom';
 import { 
   Circle, 
   CheckCircle2, 
@@ -525,6 +526,23 @@ const TaskGroup: React.FC<TaskGroupProps> = ({
 export const Tasks: React.FC = () => {
   const { data, role, addTask, updateTask, deleteTask } = useWorkspace();
   const { tasks } = data;
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.highlightTaskId) {
+      const taskId = location.state.highlightTaskId;
+      setTimeout(() => {
+        const el = document.getElementById(`task-row-${taskId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'shadow-[0_0_12px_rgba(16,185,129,0.15)]');
+          setTimeout(() => {
+            el.classList.remove('bg-emerald-500/10', 'border-emerald-500/30', 'shadow-[0_0_12px_rgba(16,185,129,0.15)]');
+          }, 2000);
+        }
+      }, 150);
+    }
+  }, [location.state]);
   
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [modalOpen, setModalOpen] = useState(false);

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { ChevronLeft, ChevronRight, CalendarDays, MapPin, ExternalLink } from 'lucide-react';
 import type { DailyLogEntry, MeetingEvent, TaskItem } from '../../data/initialState';
+import { useNavigate } from 'react-router-dom';
 
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -18,6 +19,7 @@ const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart
 
 export const Calendar: React.FC = () => {
   const { role, data } = useWorkspace();
+  const navigate = useNavigate();
   const { dailyLogs, meetings, categories, tasks } = data;
 
   const [cursor, setCursor] = useState<Date>(() => new Date());
@@ -321,7 +323,8 @@ export const Calendar: React.FC = () => {
                     return (
                       <div
                         key={m.id}
-                        className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3"
+                        onClick={() => navigate('/workspace/meetings', { state: { highlightMeetingId: m.id } })}
+                        className="rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12] p-3 cursor-pointer transition-all"
                       >
                         <div className="flex items-start gap-2.5">
                           <span 
@@ -336,7 +339,7 @@ export const Calendar: React.FC = () => {
                               {m.category}
                             </p>
                             {m.locationLink && (
-                              <div className="mt-1.5 text-[11.5px] text-apple-secondary inline-flex items-center gap-1.5">
+                              <div className="mt-1.5 text-[11.5px] text-apple-secondary inline-flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                                 {isUrl ? <ExternalLink size={10} /> : <MapPin size={10} />}
                                 {isUrl ? (
                                   <a
@@ -373,7 +376,8 @@ export const Calendar: React.FC = () => {
                     return (
                       <div
                         key={t.id}
-                        className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3"
+                        onClick={() => navigate('/workspace/tasks', { state: { highlightTaskId: t.id } })}
+                        className="rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12] p-3 cursor-pointer transition-all"
                       >
                         <div className="flex items-start gap-2.5">
                           <span 
@@ -427,7 +431,14 @@ export const Calendar: React.FC = () => {
                   {selectedLogs.map(log => (
                     <div
                       key={log.id}
-                      className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3"
+                      onClick={() => {
+                        if (role !== 'supervisor') {
+                          navigate('/workspace/log', { state: { highlightLogId: log.id } });
+                        }
+                      }}
+                      className={`rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 transition-all ${
+                        role !== 'supervisor' ? 'hover:bg-white/[0.05] hover:border-white/[0.12] cursor-pointer' : ''
+                      }`}
                     >
                       <div className="flex items-start gap-2.5">
                         <span 

@@ -508,7 +508,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
           {/* Date badge */}
           <div className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
             <Calendar size={12} />
-            <span className="text-[12px] font-mono tabular-nums font-semibold">
+            <span className="text-[12px] font-semibold">
               {new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
             </span>
           </div>
@@ -706,11 +706,11 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                         }`}>
                           {dayLabel}
                         </span>
-                        <span className="text-[10px] font-mono text-white/20 tabular-nums shrink-0">
+                        <span className="text-[10px] text-white/20 shrink-0">
                           {dateLabel}
                         </span>
                         <div className="flex-1 h-px bg-white/[0.05]" />
-                        <span className="text-[10px] font-mono text-white/20 tabular-nums shrink-0">
+                        <span className="text-[10px] text-white/20 shrink-0">
                           {groupedLogs[dateKey].length}
                         </span>
                       </button>
@@ -745,7 +745,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                           {week.label}
                         </span>
                         <div className="flex-1 h-px bg-white/[0.05]" />
-                        <span className="text-[10px] font-mono text-white/20 tabular-nums shrink-0">
+                        <span className="text-[10px] text-white/20 shrink-0">
                           {week.items.length}
                         </span>
                       </button>
@@ -780,7 +780,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                           {m.label}
                         </span>
                         <div className="flex-1 h-px bg-white/[0.05]" />
-                        <span className="text-[10px] font-mono text-white/20 tabular-nums shrink-0">
+                        <span className="text-[10px] text-white/20 shrink-0">
                           {m.items.length}
                         </span>
                       </button>

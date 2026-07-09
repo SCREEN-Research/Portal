@@ -336,7 +336,7 @@ export const Overview: React.FC = () => {
       <section>
         <div className="flex items-center gap-2 mb-4">
           <h2 className="text-[15px] font-semibold text-white tracking-tight">Research Studies</h2>
-          <span className="text-[11px] text-apple-tertiary font-mono">· {today}</span>
+          <span className="text-[11px] text-apple-tertiary">· {today}</span>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <StudyCard

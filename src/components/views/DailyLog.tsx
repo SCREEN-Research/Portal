@@ -49,7 +49,7 @@ const renderFormattedDescription = (text: string) => {
     if (currentListItems.length === 0) return;
     if (currentListType === 'ul') {
       elements.push(
-        <ul key={`ul-${key}`} className="list-disc pl-5 my-2 space-y-1 text-[15px] text-white font-medium leading-relaxed">
+        <ul key={`ul-${key}`} className="list-disc pl-5 my-1 space-y-0.5 text-[13px] text-white/90 font-medium leading-snug">
           {currentListItems.map((item, idx) => (
             <li key={idx}>{item}</li>
           ))}
@@ -57,7 +57,7 @@ const renderFormattedDescription = (text: string) => {
       );
     } else if (currentListType === 'ol') {
       elements.push(
-        <ol key={`ol-${key}`} className="list-decimal pl-5 my-2 space-y-1 text-[15px] text-white font-medium leading-relaxed">
+        <ol key={`ol-${key}`} className="list-decimal pl-5 my-1 space-y-0.5 text-[13px] text-white/90 font-medium leading-snug">
           {currentListItems.map((item, idx) => (
             <li key={idx}>{item}</li>
           ))}
@@ -89,12 +89,12 @@ const renderFormattedDescription = (text: string) => {
       flushList(idx);
       if (trimmed.length > 0) {
         elements.push(
-          <p key={`p-${idx}`} className="text-[15px] text-white font-medium leading-relaxed my-2 break-words whitespace-pre-wrap">
+          <p key={`p-${idx}`} className="text-[13px] text-white/90 font-medium leading-snug my-0.5 break-words whitespace-pre-wrap">
             {line}
           </p>
         );
       } else {
-        elements.push(<div key={`br-${idx}`} className="h-2" />);
+        elements.push(<div key={`br-${idx}`} className="h-1" />);
       }
     }
   });
@@ -299,60 +299,31 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
       <div
         key={log.id}
         id={`log-row-${log.id}`}
-        className="group relative py-2 border-b border-apple-border/50 last:border-0 transition-colors"
+        className="group relative py-1.5 border-b border-apple-border/50 last:border-0 transition-colors"
       >
         {!isEditing ? (
-          <div className="flex items-start justify-between gap-4 w-full">
-            {/* Left side: Dot + Description */}
-            <div className="flex-1 flex items-start gap-3 min-w-0">
-              <div 
-                className="w-1.5 h-2 rounded-full mt-2 shrink-0" 
-                style={{ backgroundColor: categories.find(c => c.name === log.category)?.color || '#9ca3af' }} 
-              />
-              <div className="flex-1 min-w-0">
-                <div className="space-y-1">
-                  {renderFormattedDescription(log.description)}
-                </div>
-                {log.takeaway && (
-                  <div className="mt-2 pl-3 border-l border-apple-border/50">
-                    <p className="text-[12px] text-white/60 leading-relaxed italic">
-                      {log.takeaway}
-                    </p>
-                  </div>
-                )}
+          <div className="flex items-start gap-3 w-full">
+            <div 
+              className="w-1 h-1 rounded-full mt-2 shrink-0" 
+              style={{ backgroundColor: categories.find(c => c.name === log.category)?.color || '#9ca3af' }} 
+            />
+            <div className="flex-1 min-w-0">
+              <div className="space-y-0">
+                {renderFormattedDescription(log.description)}
               </div>
-            </div>
-
-            {/* Right side: Fixed width table columns for tags and links */}
-            <div className="flex items-center gap-2 shrink-0 select-none">
-              {/* Link cell */}
-              <div className="w-6 flex items-center justify-center shrink-0">
-                {log.link && (
-                  <a
-                    href={log.link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-apple-secondary hover:text-white p-1 rounded hover:bg-apple-elevated transition-colors"
-                    title="Open link"
-                  >
-                    <ExternalLink size={12} />
-                  </a>
-                )}
-              </div>
-
-              {/* Person cell (Supervisor view only) */}
-              {role === 'supervisor' && (
-                <div className="w-20 flex items-center justify-center shrink-0">
-                  <span className="inline-flex items-center justify-center text-[12px] font-mono px-2 py-0.5 rounded border border-apple-border bg-apple-surface text-apple-secondary truncate w-full text-center">
-                    {log.person}
-                  </span>
+              {log.takeaway && (
+                <div className="mt-1 pl-2.5 border-l-2 border-apple-border/50">
+                  <p className="text-[11px] text-white/60 leading-snug italic">
+                    {log.takeaway}
+                  </p>
                 </div>
               )}
-
-              {/* Category cell */}
-              <div className="w-24 flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                <span className="text-[11px] font-mono text-apple-tertiary">
+                  {log.date}
+                </span>
                 <span
-                  className="inline-flex items-center justify-center text-[12px] font-mono px-2 py-0.5 rounded border tracking-[0.02em] w-full text-center truncate"
+                  className="inline-flex items-center justify-center text-[10px] font-mono px-1.5 py-0 rounded border tracking-[0.02em] leading-relaxed"
                   style={{ 
                     color: categories.find(c => c.name === log.category)?.color || '#9ca3af',
                     borderColor: categories.find(c => c.name === log.category)?.color || '#9ca3af',
@@ -361,12 +332,24 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                 >
                   {log.category}
                 </span>
-              </div>
-
-              {/* Actions cell (Researcher only) */}
-              {role !== 'supervisor' && (
-                <div className="w-12 flex items-center justify-end shrink-0 gap-1">
-                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                {role === 'supervisor' && (
+                  <span className="inline-flex items-center justify-center text-[10px] font-mono px-1.5 py-0 rounded border border-apple-border bg-apple-surface text-apple-secondary leading-relaxed">
+                    {log.person}
+                  </span>
+                )}
+                {log.link && (
+                  <a
+                    href={log.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-apple-secondary hover:text-white p-0.5 rounded hover:bg-apple-elevated transition-colors"
+                    title="Open link"
+                  >
+                    <ExternalLink size={10} />
+                  </a>
+                )}
+                {role !== 'supervisor' && (
+                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
                     <button
                       onClick={() => startEdit(log)}
                       className="p-1 text-apple-tertiary hover:text-emerald-400/90 rounded hover:bg-apple-elevated transition-colors"
@@ -382,8 +365,8 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                       <Trash2 size={11} />
                     </button>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         ) : (
@@ -404,8 +387,8 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                   type="date"
                   required
                   value={editDate}
-                  onChange={e => setEditDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[15px] text-white/95 focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
+                  onChange={e => setDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[13px] text-white/95 focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
                 />
               </div>
               <div>
@@ -416,7 +399,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                   required
                   value={editCategory}
                   onChange={e => setEditCategory(e.target.value)}
-                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[15px] text-white/95 focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none cursor-pointer"
+                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[13px] text-white/95 focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none cursor-pointer"
                 >
                   {categories.map(c => (
                     <option key={c.id} value={c.name} className="bg-apple-surface text-white">
@@ -437,7 +420,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                 value={editDescription}
                 onChange={e => setEditDescription(e.target.value)}
                 style={{ minHeight: '80px', height: 'auto' }}
-                className="w-full px-4 py-3 bg-apple-base border border-apple-border rounded-lg text-[15px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] transition-colors outline-none resize-none leading-relaxed"
+                className="w-full px-4 py-3 bg-apple-base border border-apple-border rounded-lg text-[13px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] transition-colors outline-none resize-none leading-relaxed"
               />
             </div>
 
@@ -450,7 +433,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                   type="url"
                   value={editLink}
                   onChange={e => setEditLink(e.target.value)}
-                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[15px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
+                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[13px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
                 />
               </div>
               <div>
@@ -461,7 +444,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                   type="text"
                   value={editTakeaway}
                   onChange={e => setEditTakeaway(e.target.value)}
-                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[15px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
+                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[13px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
                 />
               </div>
             </div>
@@ -501,7 +484,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
           <h1 className="text-[36px] sm:text-[36px] font-semibold tracking-[-0.025em] text-white leading-none">
             Daily Log
           </h1>
-          <p className="text-[15px] text-apple-gray mt-2.5 max-w-md">
+          <p className="text-[13px] text-apple-gray mt-2.5 max-w-md">
             Record what you worked on. Keep it small, keep it daily.
           </p>
         </div>
@@ -532,7 +515,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
         <button
           ref={promptRef}
           onClick={() => setIsComposing(true)}
-          className="w-full flex items-center gap-2 px-4 py-3 rounded-lg border border-apple-border bg-apple-surface hover:bg-apple-elevated transition-colors text-[15px] text-apple-gray hover:text-white/85 group"
+          className="w-full flex items-center gap-2 px-4 py-3 rounded-lg border border-apple-border bg-apple-surface hover:bg-apple-elevated transition-colors text-[13px] text-apple-gray hover:text-white/85 group"
         >
           <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-apple-elevated border border-apple-border transition-colors">
             <Plus size={13} className="group-hover:text-white transition-colors" />
@@ -564,7 +547,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                 required
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[15px] text-white/95 focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
+                className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[13px] text-white/95 focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
               />
             </div>
             <div>
@@ -584,7 +567,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                 required
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[15px] text-white/95 focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none cursor-pointer"
+                className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[13px] text-white/95 focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none cursor-pointer"
               >
                 {categories.map(c => (
                   <option key={c.id} value={c.name} className="bg-apple-surface text-white">
@@ -608,7 +591,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 style={{ minHeight: '80px', height: 'auto' }}
-                className="w-full px-4 py-3 bg-apple-base border border-apple-border rounded-lg text-[15px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] transition-colors outline-none resize-none leading-relaxed"
+                className="w-full px-4 py-3 bg-apple-base border border-apple-border rounded-lg text-[13px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] transition-colors outline-none resize-none leading-relaxed"
               />
             </div>
 
@@ -622,7 +605,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                   placeholder="https://example.com/artifact-or-ref"
                   value={link}
                   onChange={e => setLink(e.target.value)}
-                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[15px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
+                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[13px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
                 />
               </div>
               <div>
@@ -634,7 +617,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                   placeholder="One-line insight from this work"
                   value={takeaway}
                   onChange={e => setTakeaway(e.target.value)}
-                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[15px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
+                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[13px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
                 />
               </div>
             </div>
@@ -664,7 +647,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
           <div className="w-12 h-12 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-3">
             <FileText size={18} className="text-apple-gray" />
           </div>
-          <p className="text-[15px] text-white/90 font-medium">No logs recorded yet</p>
+          <p className="text-[13px] text-white/90 font-medium">No logs recorded yet</p>
           <p className="text-[12px] text-apple-secondary mt-1 max-w-xs">
             A daily log is your research journal. Start with one line - what did you work on today?
           </p>
@@ -706,7 +689,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                     <section key={dateKey} className="space-y-4">
                       <div className="flex items-center gap-3 pb-2 border-b border-white/[0.04]">
                         <div className="flex flex-col">
-                          <span className="text-[15px] font-semibold text-white tracking-tight leading-none">
+                          <span className="text-[13px] font-semibold text-white tracking-tight leading-none">
                             {dayLabel}
                           </span>
                           <span className="text-[12px] font-mono text-apple-secondary tabular-nums mt-1.5">
@@ -734,7 +717,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                   return (
                     <section key={weekKey} className="space-y-4">
                       <div className="flex items-center gap-3 pb-2 border-b border-white/[0.04]">
-                        <span className="text-[15px] font-semibold text-white tracking-tight leading-none">
+                        <span className="text-[13px] font-semibold text-white tracking-tight leading-none">
                           {week.label}
                         </span>
                         <div className="flex-1" />
@@ -758,7 +741,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                   return (
                     <section key={monthKey} className="space-y-4">
                       <div className="flex items-center gap-3 pb-2 border-b border-white/[0.04]">
-                        <span className="text-[15px] font-semibold text-white tracking-tight leading-none">
+                        <span className="text-[13px] font-semibold text-white tracking-tight leading-none">
                           {m.label}
                         </span>
                         <div className="flex-1" />

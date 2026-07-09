@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { KeyboardEvent } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { 
@@ -10,13 +10,23 @@ import {
   Plus, 
   CircleDot,
   Trash2,
-  X
+  X,
+  ChevronLeft
 } from 'lucide-react';
 import type { TaskItem, TaskStatus, TaskPriority } from '../../data/initialState';
 import { Avatar } from '../ui/Avatar';
 
 const STATUS_GROUPS: TaskStatus[] = ['Todo', 'In Progress', 'Done', 'Canceled'];
 const PRIORITIES: TaskPriority[] = ['Urgent', 'High', 'Medium', 'Low', 'No priority'];
+
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1);
+const endOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0);
+const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 const StatusIcon = ({ status, className = '' }: { status: TaskStatus, className?: string }) => {
   const size = 15;
@@ -50,6 +60,117 @@ const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
     <span className={`px-1.5 py-0.5 rounded-[4px] border text-[10px] font-medium tracking-wide uppercase ${colors}`}>
       {priority}
     </span>
+  );
+};
+
+interface MiniCalendarProps {
+  tasks: TaskItem[];
+  onDateClick: (dateStr: string) => void;
+  selectedDate: string | null;
+}
+
+const MiniCalendar: React.FC<MiniCalendarProps> = ({ tasks, onDateClick, selectedDate }) => {
+  const [cursor, setCursor] = useState(() => new Date());
+
+  const first = startOfMonth(cursor);
+  const last = endOfMonth(cursor);
+  const startWeekday = (first.getDay() + 6) % 7; // Mon is 0
+  const daysInMonth = last.getDate();
+
+  const cells = useMemo(() => {
+    const arr: { date: Date | null; key: string }[] = [];
+    for (let i = 0; i < startWeekday; i++) {
+      arr.push({ date: null, key: `pad-start-${i}` });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dt = new Date(cursor.getFullYear(), cursor.getMonth(), d);
+      arr.push({ date: dt, key: fmt(dt) });
+    }
+    while (arr.length % 7 !== 0) {
+      arr.push({ date: null, key: `pad-end-${arr.length}` });
+    }
+    return arr;
+  }, [cursor, startWeekday, daysInMonth]);
+
+  const taskDates = useMemo(() => {
+    const counts: Record<string, number> = {};
+    tasks.forEach(t => {
+      if (t.date) {
+        counts[t.date] = (counts[t.date] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [tasks]);
+
+  const monthLabel = `${MONTH_NAMES[cursor.getMonth()]} ${cursor.getFullYear()}`;
+  const todayStrVal = fmt(new Date());
+
+  const goPrev = () => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1));
+  const goNext = () => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1));
+
+  return (
+    <div className="flex flex-col bg-white/[0.02] border border-white/[0.04] p-4 rounded-2xl">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[12px] font-semibold text-white/95">{monthLabel}</span>
+        <div className="flex items-center gap-1">
+          <button 
+            type="button"
+            onClick={goPrev} 
+            className="p-1 hover:bg-white/[0.06] text-apple-gray hover:text-white rounded-md transition-colors"
+          >
+            <ChevronLeft size={14} />
+          </button>
+          <button 
+            type="button"
+            onClick={goNext} 
+            className="p-1 hover:bg-white/[0.06] text-apple-gray hover:text-white rounded-md transition-colors"
+          >
+            <ChevronRight size={14} />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-apple-secondary font-semibold mb-1">
+        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
+          <div key={idx} className="h-5 flex items-center justify-center">{day}</div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map(cell => {
+          if (!cell.date) {
+            return <div key={cell.key} className="h-6" />;
+          }
+
+          const dateStr = cell.key;
+          const hasTasks = !!taskDates[dateStr];
+          const isToday = dateStr === todayStrVal;
+          const isSelected = dateStr === selectedDate;
+
+          let btnClass = 'text-[11px] text-white/80 hover:bg-white/[0.06] rounded-md transition-all';
+          if (isSelected) {
+            btnClass = 'text-[11px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded-md';
+          } else if (isToday) {
+            btnClass = 'text-[11px] font-semibold bg-white/10 text-white border border-white/20 rounded-md';
+          }
+
+          return (
+            <button
+              key={cell.key}
+              type="button"
+              onClick={() => onDateClick(dateStr)}
+              className={`h-6 flex flex-col items-center justify-center relative ${btnClass}`}
+              title={hasTasks ? `${taskDates[dateStr]} task(s) due` : undefined}
+            >
+              <span>{cell.date.getDate()}</span>
+              {hasTasks && !isSelected && (
+                <span className="absolute bottom-[2px] w-1 h-1 rounded-full bg-emerald-400" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 
@@ -263,6 +384,7 @@ interface TaskGroupProps {
   onAddTaskInline: (title: string, status: TaskStatus, assignee: 'Miral' | 'Shalini') => void;
   onTaskClick: (task: TaskItem) => void;
   onDeleteTask: (id: string) => void;
+  highlightedDate: string | null;
 }
 
 const TaskGroup: React.FC<TaskGroupProps> = ({ 
@@ -273,7 +395,8 @@ const TaskGroup: React.FC<TaskGroupProps> = ({
   onToggle, 
   onAddTaskInline, 
   onTaskClick,
-  onDeleteTask
+  onDeleteTask,
+  highlightedDate
 }) => {
   const { data: { categories }, updateTask } = useWorkspace();
   const [isAdding, setIsAdding] = useState(false);
@@ -315,10 +438,16 @@ const TaskGroup: React.FC<TaskGroupProps> = ({
           ) : (
             tasks.map((task, index) => {
               const catObj = categories.find(c => c.name === task.category);
+              const isHighlighted = highlightedDate === task.date;
               return (
                 <div 
+                  id={`task-row-${task.id}`}
                   key={task.id} 
-                  className={`group flex flex-col gap-2 px-4 py-3 hover:bg-white/[0.03] transition-colors cursor-pointer ${index !== tasks.length - 1 || isAdding ? 'border-b border-white/[0.03]' : ''}`}
+                  className={`group flex flex-col gap-2 px-4 py-3 hover:bg-white/[0.03] transition-all cursor-pointer ${
+                    isHighlighted 
+                      ? 'bg-emerald-500/10 border border-emerald-500/30 rounded-xl shadow-[0_0_12px_rgba(16,185,129,0.15)] my-1' 
+                      : index !== tasks.length - 1 || isAdding ? 'border-b border-white/[0.03]' : ''
+                  }`}
                   onClick={() => onTaskClick(task)}
                 >
                   {/* Top Line: ID, Status, Title, Delete Button */}
@@ -360,7 +489,7 @@ const TaskGroup: React.FC<TaskGroupProps> = ({
                     </button>
                   </div>
 
-                  {/* Bottom Line: Metadata (indented to align with title) */}
+                  {/* Bottom Line: Metadata */}
                   <div className="flex items-center gap-2.5 ml-[92px] flex-wrap text-apple-tertiary">
                     {task.priority && task.priority !== 'No priority' && (
                       <PriorityBadge priority={task.priority} />
@@ -447,6 +576,8 @@ export const Tasks: React.FC = () => {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TaskItem | undefined>(undefined);
+  const [highlightedDate, setHighlightedDate] = useState<string | null>(null);
+  const [highlightTimeout, setHighlightTimeout] = useState<any>(null);
 
   const toggleGroup = (key: string) => {
     setCollapsedGroups(prev => ({
@@ -490,6 +621,44 @@ export const Tasks: React.FC = () => {
     });
   };
 
+  const handleDateClick = (dateStr: string) => {
+    setHighlightedDate(dateStr);
+    
+    // Find the first task matching the date
+    const matchingTasks = tasks.filter(t => t.date === dateStr);
+    
+    const currentVisibleTasks = matchingTasks.filter(t => {
+      if (role === 'supervisor') return true;
+      const activePerson = role === 'shalini' ? 'Shalini' : 'Miral';
+      return t.assignee === activePerson;
+    });
+
+    if (currentVisibleTasks.length > 0) {
+      const firstTask = currentVisibleTasks[0];
+      // Expand group if collapsed
+      const groupKey = `${firstTask.assignee}-${firstTask.status}`;
+      if (collapsedGroups[groupKey]) {
+        setCollapsedGroups(prev => ({ ...prev, [groupKey]: false }));
+      }
+      
+      setTimeout(() => {
+        const element = document.getElementById(`task-row-${firstTask.id}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 80);
+    }
+
+    if (highlightTimeout) {
+      clearTimeout(highlightTimeout);
+    }
+
+    const timeout = setTimeout(() => {
+      setHighlightedDate(null);
+    }, 2800);
+    setHighlightTimeout(timeout);
+  };
+
   const isSupervisor = role === 'supervisor';
   const activePerson: 'Miral' | 'Shalini' = role === 'shalini' ? 'Shalini' : 'Miral';
 
@@ -528,6 +697,7 @@ export const Tasks: React.FC = () => {
               onAddTaskInline={handleAddTaskInline}
               onTaskClick={handleTaskClick}
               onDeleteTask={handleDeleteTask}
+              highlightedDate={highlightedDate}
             />
           );
         })}
@@ -536,32 +706,49 @@ export const Tasks: React.FC = () => {
   };
 
   return (
-    <div className="fade-in max-w-6xl mx-auto pb-20">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-[20px] font-semibold tracking-tight text-white flex items-center gap-2">
-            Tasks
-          </h1>
-        </div>
-        <button 
-          onClick={handleOpenNewTask}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.08] text-white/95 border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.14] rounded-lg text-[12px] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-colors"
-        >
-          <Plus size={14} />
-          <span>New Task</span>
-        </button>
-      </div>
+    <div className="fade-in max-w-7xl mx-auto pb-20">
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
+        {/* Main Columns Container */}
+        <div className="flex-1 w-full min-w-0">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-[20px] font-semibold tracking-tight text-white flex items-center gap-2">
+                Tasks
+              </h1>
+            </div>
+            <button 
+              onClick={handleOpenNewTask}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.08] text-white/95 border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.14] rounded-lg text-[12px] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-colors"
+            >
+              <Plus size={14} />
+              <span>New Task</span>
+            </button>
+          </div>
 
-      {isSupervisor ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          <div>{renderColumn('Shalini', shaliniTasks)}</div>
-          <div>{renderColumn('Miral', miralTasks)}</div>
+          {isSupervisor ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+              <div>{renderColumn('Shalini', shaliniTasks)}</div>
+              <div>{renderColumn('Miral', miralTasks)}</div>
+            </div>
+          ) : (
+            <div className="max-w-4xl">
+              {renderColumn(activePerson, role === 'shalini' ? shaliniTasks : miralTasks)}
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="max-w-4xl">
-          {renderColumn(activePerson, role === 'shalini' ? shaliniTasks : miralTasks)}
+
+        {/* Sidebar Mini Calendar */}
+        <div className="w-full lg:w-72 lg:sticky lg:top-8 shrink-0 flex flex-col gap-4">
+          <div className="text-[11px] font-semibold tracking-wider text-apple-secondary uppercase pl-1">
+            Task Calendar
+          </div>
+          <MiniCalendar 
+            tasks={role === 'supervisor' ? tasks : (role === 'shalini' ? shaliniTasks : miralTasks)} 
+            onDateClick={handleDateClick} 
+            selectedDate={highlightedDate} 
+          />
         </div>
-      )}
+      </div>
 
       {modalOpen && (
         <TaskModal

@@ -430,12 +430,8 @@ const TaskGroup: React.FC<TaskGroupProps> = ({
                   }`}
                   onClick={() => onTaskClick(task)}
                 >
-                  {/* Top Line: ID, Status, Title, Delete Button */}
-                  <div className="flex items-start gap-3 w-full min-w-0">
-                    <div className="flex-shrink-0 w-16 text-[11.5px] font-mono text-apple-tertiary group-hover:text-apple-secondary transition-colors pt-[2px]">
-                      {task.identifier}
-                    </div>
-                    
+                  {/* Top Line: Status, Title, Delete Button */}
+                  <div className="flex items-start gap-2.5 w-full min-w-0">
                     <div 
                       className="relative group/status flex-shrink-0 cursor-pointer pt-[2px]"
                       onClick={e => e.stopPropagation()}
@@ -473,7 +469,11 @@ const TaskGroup: React.FC<TaskGroupProps> = ({
                   </div>
 
                   {/* Bottom Line: Metadata */}
-                  <div className="flex items-center gap-2.5 ml-[92px] flex-wrap text-apple-tertiary w-full pr-[92px] min-w-0">
+                  <div className="flex items-center gap-2.5 ml-7 flex-wrap text-apple-tertiary w-full pr-7 min-w-0">
+                    <span className="text-[11px] font-mono text-apple-secondary group-hover:text-apple-gray transition-colors shrink-0">
+                      {task.identifier}
+                    </span>
+
                     {task.priority && task.priority !== 'No priority' && (
                       <PriorityBadge priority={task.priority} />
                     )}

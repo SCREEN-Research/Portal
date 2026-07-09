@@ -299,7 +299,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
       <div
         key={log.id}
         id={`log-row-${log.id}`}
-        className="group relative py-4 border-b border-apple-border/50 last:border-0 transition-colors"
+        className="group relative py-2 border-b border-apple-border/50 last:border-0 transition-colors"
       >
         {!isEditing ? (
           <div className="flex items-start gap-3">
@@ -312,7 +312,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                 {renderFormattedDescription(log.description)}
               </div>
 
-              <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
                 {role === 'supervisor' && (
                   <span className="inline-flex items-center gap-1 text-[12px] font-semibold px-2 py-0.5 rounded-md border border-white/10 bg-white/[0.05] text-apple-secondary uppercase tracking-[0.06em]">
                     {log.person}
@@ -342,7 +342,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
               </div>
 
               {log.takeaway && (
-                <div className="mt-3 pl-3 border-l-2 border-emerald-400/30">
+                <div className="mt-2 pl-3 border-l-2 border-emerald-400/30">
                   <p className="text-[12px] text-white/80 leading-relaxed italic">
                     {log.takeaway}
                   </p>
@@ -700,7 +700,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                           {groupedLogs[dateKey].length} {groupedLogs[dateKey].length === 1 ? 'entry' : 'entries'}
                         </span>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-0">
                         {groupedLogs[dateKey].map(log => renderLogCard(log))}
                       </div>
                     </section>
@@ -724,7 +724,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                           {week.items.length} {week.items.length === 1 ? 'entry' : 'entries'}
                         </span>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-0">
                         {week.items.map(log => renderLogCard(log))}
                       </div>
                     </section>
@@ -748,7 +748,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                           {m.items.length} {m.items.length === 1 ? 'entry' : 'entries'}
                         </span>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-0">
                         {m.items.map(log => renderLogCard(log))}
                       </div>
                     </section>
@@ -758,7 +758,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
             )}
 
             {activeTab === 'All Time' && (
-              <div className="space-y-3">
+              <div className="space-y-0">
                 {myLogs.map(log => renderLogCard(log))}
               </div>
             )}

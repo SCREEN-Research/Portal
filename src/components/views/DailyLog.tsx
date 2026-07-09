@@ -331,27 +331,22 @@ export const DailyLog: React.FC<DailyLogProps> = ({ newEntryTrigger }) => {
                   </p>
                 </div>
               )}
-              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span className="text-[10px] text-white/20 tabular-nums">
-                  {log.date}
-                </span>
+              <div className="flex items-center gap-3 mt-1 flex-wrap">
                 <span
-                  className="text-[10px] font-medium tracking-wide"
-                  style={{ color: (categories.find(c => c.name === log.category)?.color || '#9ca3af') + 'aa' }}
+                  className="text-[10px] font-medium"
+                  style={{ color: (categories.find(c => c.name === log.category)?.color || '#9ca3af') + '88' }}
                 >
                   {log.category}
                 </span>
                 {role === 'supervisor' && (
-                  <span className="text-[10px] text-white/20">
-                    {log.person}
-                  </span>
+                  <span className="text-[10px] text-white/15">{log.person}</span>
                 )}
                 {log.link && (
                   <a
                     href={log.link}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-apple-secondary hover:text-white p-0.5 rounded hover:bg-apple-elevated transition-colors"
+                    className="text-white/20 hover:text-white/60 transition-colors"
                     title="Open link"
                   >
                     <ExternalLink size={10} />

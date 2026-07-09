@@ -1,7 +1,72 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { CheckCircle2, MessageSquare, Clock, Sparkles, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
+
+const renderFormattedDescription = (text: string) => {
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  
+  let currentListType: 'ul' | 'ol' | null = null;
+  let currentListItems: string[] = [];
+
+  const flushList = (key: string | number) => {
+    if (currentListItems.length === 0) return;
+    if (currentListType === 'ul') {
+      elements.push(
+        <ul key={`ul-${key}`} className="list-disc pl-5 my-1.5 space-y-1 text-[13.5px] text-white/90 leading-relaxed">
+          {currentListItems.map((item, idx) => (
+            <li key={idx}>{item}</li>
+          ))}
+        </ul>
+      );
+    } else if (currentListType === 'ol') {
+      elements.push(
+        <ol key={`ol-${key}`} className="list-decimal pl-5 my-1.5 space-y-1 text-[13.5px] text-white/90 leading-relaxed">
+          {currentListItems.map((item, idx) => (
+            <li key={idx}>{item}</li>
+          ))}
+        </ol>
+      );
+    }
+    currentListItems = [];
+    currentListType = null;
+  };
+
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    const isBullet = /^[*-]\s+(.*)/.exec(trimmed);
+    const isNumbered = /^\d+[\.)]\s+(.*)/.exec(trimmed);
+
+    if (isBullet) {
+      if (currentListType !== 'ul') {
+        flushList(idx);
+        currentListType = 'ul';
+      }
+      currentListItems.push(isBullet[1]);
+    } else if (isNumbered) {
+      if (currentListType !== 'ol') {
+        flushList(idx);
+        currentListType = 'ol';
+      }
+      currentListItems.push(isNumbered[1]);
+    } else {
+      flushList(idx);
+      if (trimmed.length > 0) {
+        elements.push(
+          <p key={`p-${idx}`} className="text-[13.5px] text-white/90 leading-relaxed my-1 break-words whitespace-pre-wrap">
+            {line}
+          </p>
+        );
+      } else {
+        elements.push(<div key={`br-${idx}`} className="h-1.5" />);
+      }
+    }
+  });
+
+  flushList(lines.length);
+  return elements;
+};
 
 // Returns the Monday of the week containing `date`.
 const getWeekStart = (date: Date = new Date()): Date => {
@@ -62,6 +127,23 @@ export const WeeklyReview: React.FC = () => {
   const [isEditingMiral, setIsEditingMiral] = useState(false);
   const [isEditingShalini, setIsEditingShalini] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+
+  const commentShaliniRef = useRef<HTMLTextAreaElement>(null);
+  const commentMiralRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (commentShaliniRef.current) {
+      commentShaliniRef.current.style.height = 'auto';
+      commentShaliniRef.current.style.height = `${commentShaliniRef.current.scrollHeight}px`;
+    }
+  }, [supervisorCommentShalini, isEditingShalini]);
+
+  useEffect(() => {
+    if (commentMiralRef.current) {
+      commentMiralRef.current.style.height = 'auto';
+      commentMiralRef.current.style.height = `${commentMiralRef.current.scrollHeight}px`;
+    }
+  }, [supervisorCommentMiral, isEditingMiral]);
 
   // Track which week is being viewed. Stored as an offset from the current week (0 = this week,
   // -1 = previous week, +1 = next week). Auto-jumps to current week on mount and re-mounts.
@@ -400,37 +482,43 @@ export const WeeklyReview: React.FC = () => {
           {/* Row 2: What got done */}
           <div className="border-x border-t border-white/[0.04] bg-white/[0.02] px-4 sm:px-5 pt-4 pb-2">
             <label className="block text-[11px] text-white/85 mb-1.5 font-semibold tracking-[0.02em] uppercase">What got done</label>
-            <textarea rows={3} value={myReflection.shaliniReflection.done} readOnly disabled
-              className="w-full px-3.5 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[13.5px] text-white/95 placeholder:text-apple-tertiary outline-none resize-none leading-relaxed disabled:opacity-80" />
+            <div className="w-full px-3.5 py-2.5 bg-white/[0.02] border border-white/[0.06] rounded-lg text-[13.5px] text-white/90 leading-relaxed min-h-[80px] space-y-1">
+              {renderFormattedDescription(myReflection.shaliniReflection.done || 'Nothing entered')}
+            </div>
           </div>
           <div className="border-x border-t border-white/[0.04] bg-white/[0.02] px-4 sm:px-5 pt-4 pb-2">
             <label className="block text-[11px] text-white/85 mb-1.5 font-semibold tracking-[0.02em] uppercase">What got done</label>
-            <textarea rows={3} value={myReflection.miralReflection.done} readOnly disabled
-              className="w-full px-3.5 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[13.5px] text-white/95 placeholder:text-apple-tertiary outline-none resize-none leading-relaxed disabled:opacity-80" />
+            <div className="w-full px-3.5 py-2.5 bg-white/[0.02] border border-white/[0.06] rounded-lg text-[13.5px] text-white/90 leading-relaxed min-h-[80px] space-y-1">
+              {renderFormattedDescription(myReflection.miralReflection.done || 'Nothing entered')}
+            </div>
           </div>
 
           {/* Row 3: Blockers */}
           <div className="border-x border-t border-white/[0.04] bg-white/[0.02] px-4 sm:px-5 pt-4 pb-2">
             <label className="block text-[11px] text-white/85 mb-1.5 font-semibold tracking-[0.02em] uppercase">Blockers</label>
-            <textarea rows={3} value={myReflection.shaliniReflection.blockers} readOnly disabled
-              className="w-full px-3.5 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[13.5px] text-white/95 placeholder:text-apple-tertiary outline-none resize-none leading-relaxed disabled:opacity-80" />
+            <div className="w-full px-3.5 py-2.5 bg-white/[0.02] border border-white/[0.06] rounded-lg text-[13.5px] text-white/90 leading-relaxed min-h-[80px] space-y-1">
+              {renderFormattedDescription(myReflection.shaliniReflection.blockers || 'None')}
+            </div>
           </div>
           <div className="border-x border-t border-white/[0.04] bg-white/[0.02] px-4 sm:px-5 pt-4 pb-2">
             <label className="block text-[11px] text-white/85 mb-1.5 font-semibold tracking-[0.02em] uppercase">Blockers</label>
-            <textarea rows={3} value={myReflection.miralReflection.blockers} readOnly disabled
-              className="w-full px-3.5 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[13.5px] text-white/95 placeholder:text-apple-tertiary outline-none resize-none leading-relaxed disabled:opacity-80" />
+            <div className="w-full px-3.5 py-2.5 bg-white/[0.02] border border-white/[0.06] rounded-lg text-[13.5px] text-white/90 leading-relaxed min-h-[80px] space-y-1">
+              {renderFormattedDescription(myReflection.miralReflection.blockers || 'None')}
+            </div>
           </div>
 
           {/* Row 4: Next week focus */}
           <div className="border-x border-t border-white/[0.04] bg-white/[0.02] px-4 sm:px-5 pt-4 pb-4">
             <label className="block text-[11px] text-white/85 mb-1.5 font-semibold tracking-[0.02em] uppercase">Next week focus</label>
-            <textarea rows={3} value={myReflection.shaliniReflection.next} readOnly disabled
-              className="w-full px-3.5 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[13.5px] text-white/95 placeholder:text-apple-tertiary outline-none resize-none leading-relaxed disabled:opacity-80" />
+            <div className="w-full px-3.5 py-2.5 bg-white/[0.02] border border-white/[0.06] rounded-lg text-[13.5px] text-white/90 leading-relaxed min-h-[80px] space-y-1">
+              {renderFormattedDescription(myReflection.shaliniReflection.next || 'Nothing entered')}
+            </div>
           </div>
           <div className="border-x border-t border-white/[0.04] bg-white/[0.02] px-4 sm:px-5 pt-4 pb-4">
             <label className="block text-[11px] text-white/85 mb-1.5 font-semibold tracking-[0.02em] uppercase">Next week focus</label>
-            <textarea rows={3} value={myReflection.miralReflection.next} readOnly disabled
-              className="w-full px-3.5 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[13.5px] text-white/95 placeholder:text-apple-tertiary outline-none resize-none leading-relaxed disabled:opacity-80" />
+            <div className="w-full px-3.5 py-2.5 bg-white/[0.02] border border-white/[0.06] rounded-lg text-[13.5px] text-white/90 leading-relaxed min-h-[80px] space-y-1">
+              {renderFormattedDescription(myReflection.miralReflection.next || 'Nothing entered')}
+            </div>
           </div>
 
           {/* Row 5: Supervisor feedback boxes */}
@@ -442,9 +530,9 @@ export const WeeklyReview: React.FC = () => {
             {myReflection.supervisorCommentShalini && !isEditingShalini ? (
               <div className="space-y-3">
                 <div className="relative pl-3.5 border-l-2 border-emerald-500/40 py-1 bg-emerald-500/[0.02] rounded-r-lg">
-                  <p className="text-[13.5px] text-white/90 leading-relaxed whitespace-pre-wrap">
-                    {myReflection.supervisorCommentShalini}
-                  </p>
+                  <div className="text-[13.5px] text-white/90 leading-relaxed space-y-1">
+                    {renderFormattedDescription(myReflection.supervisorCommentShalini)}
+                  </div>
                 </div>
                 <div className="flex justify-end">
                   <button
@@ -457,9 +545,14 @@ export const WeeklyReview: React.FC = () => {
               </div>
             ) : (
               <>
-                <textarea rows={3} value={supervisorCommentShalini} onChange={e => setSupervisorCommentShalini(e.target.value)}
+                <textarea
+                  ref={commentShaliniRef}
+                  value={supervisorCommentShalini}
+                  onChange={e => setSupervisorCommentShalini(e.target.value)}
+                  style={{ minHeight: '60px', height: 'auto' }}
                   placeholder="Add comments for Shalini…"
-                  className="w-full px-3.5 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[14px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.05] transition-colors outline-none resize-none leading-relaxed" />
+                  className="w-full px-3.5 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[14px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.05] transition-colors outline-none resize-none leading-relaxed"
+                />
                 <div className="flex justify-end gap-2 mt-2">
                   {myReflection.supervisorCommentShalini && (
                     <button onClick={() => handleCancelEdit('Shalini')}
@@ -483,9 +576,9 @@ export const WeeklyReview: React.FC = () => {
             {myReflection.supervisorCommentMiral && !isEditingMiral ? (
               <div className="space-y-3">
                 <div className="relative pl-3.5 border-l-2 border-emerald-500/40 py-1 bg-emerald-500/[0.02] rounded-r-lg">
-                  <p className="text-[13.5px] text-white/90 leading-relaxed whitespace-pre-wrap">
-                    {myReflection.supervisorCommentMiral}
-                  </p>
+                  <div className="text-[13.5px] text-white/90 leading-relaxed space-y-1">
+                    {renderFormattedDescription(myReflection.supervisorCommentMiral)}
+                  </div>
                 </div>
                 <div className="flex justify-end">
                   <button
@@ -498,9 +591,14 @@ export const WeeklyReview: React.FC = () => {
               </div>
             ) : (
               <>
-                <textarea rows={3} value={supervisorCommentMiral} onChange={e => setSupervisorCommentMiral(e.target.value)}
+                <textarea
+                  ref={commentMiralRef}
+                  value={supervisorCommentMiral}
+                  onChange={e => setSupervisorCommentMiral(e.target.value)}
+                  style={{ minHeight: '60px', height: 'auto' }}
                   placeholder="Add comments for Miral…"
-                  className="w-full px-3.5 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[14px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.05] transition-colors outline-none resize-none leading-relaxed" />
+                  className="w-full px-3.5 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[14px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.05] transition-colors outline-none resize-none leading-relaxed"
+                />
                 <div className="flex justify-end gap-2 mt-2">
                   {myReflection.supervisorCommentMiral && (
                     <button onClick={() => handleCancelEdit('Miral')}
@@ -680,19 +778,35 @@ interface FieldProps {
   readOnly?: boolean;
 }
 
-const Field: React.FC<FieldProps> = ({ label, placeholder, value, onChange, readOnly }) => (
-  <div>
-    <label className="block text-[11px] text-white/85 mb-1.5 font-semibold tracking-[0.02em] uppercase">
-      {label}
-    </label>
-    <textarea
-      rows={3}
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      placeholder={placeholder}
-      readOnly={readOnly}
-      disabled={readOnly}
-      className="w-full px-3.5 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[13.5px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.05] transition-colors outline-none resize-none leading-relaxed disabled:opacity-80"
-    />
-  </div>
-);
+const Field: React.FC<FieldProps> = ({ label, placeholder, value, onChange, readOnly }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [value, readOnly]);
+
+  return (
+    <div>
+      <label className="block text-[11px] text-white/85 mb-1.5 font-semibold tracking-[0.02em] uppercase">
+        {label}
+      </label>
+      {readOnly ? (
+        <div className="w-full px-3.5 py-2.5 bg-white/[0.02] border border-white/[0.06] rounded-lg text-[13.5px] text-white/90 leading-relaxed min-h-[80px] space-y-1">
+          {renderFormattedDescription(value || '')}
+        </div>
+      ) : (
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder}
+          style={{ minHeight: '80px', height: 'auto' }}
+          className="w-full px-3.5 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[13.5px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.05] transition-colors outline-none resize-none leading-relaxed disabled:opacity-80"
+        />
+      )}
+    </div>
+  );
+};

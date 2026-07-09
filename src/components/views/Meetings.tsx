@@ -1,8 +1,73 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Download, Plus, ExternalLink, MapPin, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '../ui/Toast';
 import { useLocation } from 'react-router-dom';
+
+const renderFormattedDescription = (text: string) => {
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  
+  let currentListType: 'ul' | 'ol' | null = null;
+  let currentListItems: string[] = [];
+
+  const flushList = (key: string | number) => {
+    if (currentListItems.length === 0) return;
+    if (currentListType === 'ul') {
+      elements.push(
+        <ul key={`ul-${key}`} className="list-disc pl-5 my-1.5 space-y-1 text-[12.5px] text-white/85 leading-relaxed">
+          {currentListItems.map((item, idx) => (
+            <li key={idx}>{item}</li>
+          ))}
+        </ul>
+      );
+    } else if (currentListType === 'ol') {
+      elements.push(
+        <ol key={`ol-${key}`} className="list-decimal pl-5 my-1.5 space-y-1 text-[12.5px] text-white/85 leading-relaxed">
+          {currentListItems.map((item, idx) => (
+            <li key={idx}>{item}</li>
+          ))}
+        </ol>
+      );
+    }
+    currentListItems = [];
+    currentListType = null;
+  };
+
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    const isBullet = /^[*-]\s+(.*)/.exec(trimmed);
+    const isNumbered = /^\d+[\.)]\s+(.*)/.exec(trimmed);
+
+    if (isBullet) {
+      if (currentListType !== 'ul') {
+        flushList(idx);
+        currentListType = 'ul';
+      }
+      currentListItems.push(isBullet[1]);
+    } else if (isNumbered) {
+      if (currentListType !== 'ol') {
+        flushList(idx);
+        currentListType = 'ol';
+      }
+      currentListItems.push(isNumbered[1]);
+    } else {
+      flushList(idx);
+      if (trimmed.length > 0) {
+        elements.push(
+          <p key={`p-${idx}`} className="text-[12.5px] text-white/85 leading-relaxed my-1 break-words whitespace-pre-wrap">
+            {line}
+          </p>
+        );
+      } else {
+        elements.push(<div key={`br-${idx}`} className="h-1" />);
+      }
+    }
+  });
+
+  flushList(lines.length);
+  return elements;
+};
 import { ManageCategoriesModal } from '../ui/ManageCategoriesModal';
 
 const ATTENDEES = ['Shalini', 'Miral', 'Dr. Chathura'] as const;
@@ -41,6 +106,14 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendees, setAttendees] = useState<('Miral' | 'Shalini' | 'Dr. Chathura')[]>([]);
   const [outcome, setOutcome] = useState('');
+
+  const outcomeRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (outcomeRef.current) {
+      outcomeRef.current.style.height = 'auto';
+      outcomeRef.current.style.height = `${outcomeRef.current.scrollHeight}px`;
+    }
+  }, [outcome, isOpen]);
 
   useEffect(() => {
     if (newMeetingTrigger && newMeetingTrigger > 0) setIsOpen(true);
@@ -263,10 +336,11 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
                 Outcome notes
               </label>
               <textarea
-                rows={2}
+                ref={outcomeRef}
                 placeholder="Key decisions or action items..."
                 value={outcome}
                 onChange={e => setOutcome(e.target.value)}
+                style={{ minHeight: '60px', height: 'auto' }}
                 className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[14px] text-white/95 placeholder:text-apple-tertiary focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none resize-none"
               />
             </div>
@@ -400,8 +474,8 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
                               )}
                             </div>
                             {meet.outcome && (
-                              <div className="mt-3 pl-3 border-l-2 border-white/[0.12]">
-                                <p className="text-[12.5px] text-white/85 leading-relaxed">{meet.outcome}</p>
+                              <div className="mt-3 pl-3 border-l-2 border-white/[0.12] space-y-1">
+                                {renderFormattedDescription(meet.outcome)}
                               </div>
                             )}
                           </div>

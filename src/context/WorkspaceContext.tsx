@@ -57,6 +57,31 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           if (!parsed.tasks) {
             parsed.tasks = initialWorkspaceData.tasks;
           }
+          // Normalize categories and default time blocks for local storage
+          parsed.meetings = parsed.meetings.map((m: any) => {
+            const categoryName = m.category === 'Supervisor Meeting' ? 'Progress Meeting' : (m.category || '');
+            let parsedTime = m.time || '';
+            let endTime = m.endTime || '';
+            if (!parsedTime && categoryName === 'Progress Meeting') {
+              const day = new Date(m.date + 'T00:00:00').getDay();
+              if (day === 1) {
+                parsedTime = '09:00';
+                endTime = '10:00';
+              } else if (day === 3) {
+                parsedTime = '11:00';
+                endTime = '12:00';
+              } else if (day === 5) {
+                parsedTime = '14:00';
+                endTime = '15:00';
+              }
+            }
+            return {
+              ...m,
+              category: categoryName,
+              time: parsedTime,
+              endTime
+            };
+          });
           return parsed;
         }
       }
@@ -150,10 +175,27 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
           const categoryName = m.category === 'Supervisor Meeting' ? 'Progress Meeting' : (m.category || '');
 
+          let parsedTime = timePart ? timePart.slice(0, 5) : '';
+
+          // Assign default meeting time blocks if not stored explicitly in database
+          if (!parsedTime && categoryName === 'Progress Meeting') {
+            const day = new Date(datePart + 'T00:00:00').getDay();
+            if (day === 1) { // Monday
+              parsedTime = '09:00';
+              endTime = '10:00';
+            } else if (day === 3) { // Wednesday
+              parsedTime = '11:00';
+              endTime = '12:00';
+            } else if (day === 5) { // Friday
+              parsedTime = '14:00';
+              endTime = '15:00';
+            }
+          }
+
           return {
             id: m.id,
             date: datePart,
-            time: timePart ? timePart.slice(0, 5) : '',
+            time: parsedTime,
             endTime,
             category: categoryName,
             title: m.title,

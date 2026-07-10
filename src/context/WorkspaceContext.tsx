@@ -129,15 +129,37 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           const parts = dateStr.includes('T') ? dateStr.split('T') : dateStr.split(' ');
           const datePart = parts[0] || '';
           const timePart = parts[1] || '';
+
+          let outcomeText = m.outcome || '';
+          let endTime = '';
+          if (outcomeText.startsWith('__END_TIME__:\n')) {
+            if (outcomeText.startsWith('__END_TIME__:')) {
+              const endIdx = outcomeText.indexOf('__\n');
+              if (endIdx !== -1) {
+                endTime = outcomeText.substring(13, endIdx);
+                outcomeText = outcomeText.substring(endIdx + 3);
+              }
+            }
+          } else if (outcomeText.startsWith('__END_TIME__:')) {
+            const endIdx = outcomeText.indexOf('__');
+            if (endIdx !== -1) {
+              endTime = outcomeText.substring(13, endIdx);
+              outcomeText = outcomeText.substring(endIdx + 2);
+            }
+          }
+
+          const categoryName = m.category === 'Supervisor Meeting' ? 'Progress Meeting' : (m.category || '');
+
           return {
             id: m.id,
             date: datePart,
             time: timePart ? timePart.slice(0, 5) : '',
-            category: m.category,
+            endTime,
+            category: categoryName,
             title: m.title,
             locationLink: m.location_link || '',
             attendees: m.attendees || [],
-            outcome: m.outcome || ''
+            outcome: outcomeText
           };
         });
 
@@ -476,6 +498,10 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }));
 
     if (syncMode === 'synced' && supabase) {
+      const outcomeText = meeting.endTime
+        ? `__END_TIME__:${meeting.endTime}__\n${meeting.outcome || ''}`
+        : (meeting.outcome || null);
+
       await supabase.from('meetings').insert([{
         id: newMeeting.id,
         date: meeting.time ? `${meeting.date} ${meeting.time}:00` : meeting.date,
@@ -483,7 +509,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         title: meeting.title,
         location_link: meeting.locationLink || null,
         attendees: meeting.attendees,
-        outcome: meeting.outcome || null
+        outcome: outcomeText
       }]);
     }
   };
@@ -521,10 +547,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         r.activities.join('; ')
       ]);
     } else if (section === 'meetings') {
-      headers = ['Date', 'Time', 'Category', 'Title', 'Location/Link', 'Attendees', 'Outcome'];
+      headers = ['Date', 'Start Time', 'End Time', 'Category', 'Title', 'Location/Link', 'Attendees', 'Outcome'];
       rows = data.meetings.map(m => [
         m.date,
         m.time || '',
+        m.endTime || '',
         m.category,
         m.title,
         m.locationLink,

@@ -116,7 +116,8 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
   const [category, setCategory] = useState(categories[0]?.name || '');
   const [locationLink, setLocationLink] = useState('');
   const [date, setDate] = useState((() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })());
-  const [time, setTime] = useState('10:00');
+  const [time, setTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('10:00');
   const [attendees, setAttendees] = useState<('Miral' | 'Shalini' | 'Dr. Chathura')[]>([]);
   const [outcome, setOutcome] = useState('');
 
@@ -159,7 +160,8 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
     setOutcome('');
     setAttendees([]);
     setDate((() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })());
-    setTime('10:00');
+    setTime('09:00');
+    setEndTime('10:00');
     setIsOpen(false);
   };
 
@@ -170,6 +172,7 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
     addMeeting({
       date,
       time,
+      endTime,
       category,
       title: title.trim(),
       locationLink: locationLink.trim(),
@@ -260,7 +263,7 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
             </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div>
                 <label className="block text-[10.5px] font-semibold tracking-[0.08em] uppercase text-white/80 mb-1.5">
                   Date
@@ -275,13 +278,25 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
               </div>
               <div>
                 <label className="block text-[10.5px] font-semibold tracking-[0.08em] uppercase text-white/80 mb-1.5">
-                  Time
+                  Start Time
                 </label>
                 <input
                   type="time"
                   required
                   value={time}
                   onChange={e => setTime(e.target.value)}
+                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[14px] text-white/95 focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[10.5px] font-semibold tracking-[0.08em] uppercase text-white/80 mb-1.5">
+                  End Time
+                </label>
+                <input
+                  type="time"
+                  required
+                  value={endTime}
+                  onChange={e => setEndTime(e.target.value)}
                   className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-[14px] text-white/95 focus:border-white/[0.2] focus:bg-white/[0.06] transition-colors outline-none"
                 />
               </div>
@@ -486,7 +501,10 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
                                     <span className="text-apple-tertiary text-[10px]">·</span>
                                     <span className="text-[12px] text-white/90 inline-flex items-center gap-1 font-mono">
                                       <Clock size={11} className="text-apple-tertiary" />
-                                      <span>{formatTime12h(meet.time)}</span>
+                                      <span>
+                                        {formatTime12h(meet.time)}
+                                        {meet.endTime ? ` - ${formatTime12h(meet.endTime)}` : ''}
+                                      </span>
                                     </span>
                                   </>
                                 )}

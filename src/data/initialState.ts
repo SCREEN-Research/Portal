@@ -47,6 +47,7 @@ export interface MeetingEvent {
   id: string;
   date: string; // YYYY-MM-DD
   time?: string; // HH:MM
+  endTime?: string; // HH:MM
   category: string;
   title: string;
   locationLink: string;
@@ -107,8 +108,9 @@ const generateRecurringMeetings = (): MeetingEvent[] => {
     {
       id: 'meet-rec-mon',
       date: getFormattedDate(monday, 0),
-      time: '10:00',
-      category: 'Supervisor Meeting',
+      time: '09:00',
+      endTime: '10:00',
+      category: 'Progress Meeting',
       title: 'SCREEN- Dilmah research project (Monday)',
       locationLink: 'https://meet.google.com/vmf-znku-wdt',
       attendees: ['Miral', 'Shalini', 'Dr. Chathura'],
@@ -117,8 +119,9 @@ const generateRecurringMeetings = (): MeetingEvent[] => {
     {
       id: 'meet-rec-wed',
       date: getFormattedDate(monday, 2),
-      time: '14:00',
-      category: 'Supervisor Meeting',
+      time: '11:00',
+      endTime: '12:00',
+      category: 'Progress Meeting',
       title: 'SCREEN- Dilmah research project (Wednesday)',
       locationLink: 'https://meet.google.com/ita-pspp-pge',
       attendees: ['Miral', 'Shalini', 'Dr. Chathura'],
@@ -127,8 +130,9 @@ const generateRecurringMeetings = (): MeetingEvent[] => {
     {
       id: 'meet-rec-fri',
       date: getFormattedDate(monday, 4),
-      time: '16:00',
-      category: 'Supervisor Meeting',
+      time: '14:00',
+      endTime: '15:00',
+      category: 'Progress Meeting',
       title: 'SCREEN- Dilmah research project (Friday)',
       locationLink: 'https://meet.google.com/cqa-razj-gpv',
       attendees: ['Miral', 'Shalini', 'Dr. Chathura'],
@@ -143,7 +147,7 @@ export const initialWorkspaceData: WorkspaceData = {
     { id: 'cat-2', name: 'Prototype & Model Development', color: '#8b5cf6' }, // violet-500
     { id: 'cat-3', name: 'Writing & Documentation', color: '#3b82f6' }, // blue-500
     { id: 'cat-4', name: 'Meetings & Presentations', color: '#f59e0b' }, // amber-500
-    { id: 'cat-5', name: 'Supervisor Meeting', color: '#ec4899' }, // pink-500
+    { id: 'cat-5', name: 'Progress Meeting', color: '#ec4899' }, // pink-500
     { id: 'cat-6', name: 'Research Conference', color: '#06b6d4' }, // cyan-500
     { id: 'cat-7', name: 'Lecture or Seminar', color: '#f97316' }, // orange-500
     { id: 'cat-8', name: 'Field Visit', color: '#84cc16' }, // lime-500

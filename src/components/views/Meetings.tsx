@@ -421,8 +421,7 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
           </p>
         </div>
       ) : (
-        <div className="space-y-10">
-          {sortedDates.map(dateKey => {
+        <div className="space-y-10">          {sortedDates.map(dateKey => {
             const isUpcoming = new Date(dateKey).getTime() >= now;
             const isT = new Date(dateKey + 'T00:00:00').toDateString() === todayStr;
             const dateObj = new Date(dateKey + 'T00:00:00');
@@ -437,12 +436,23 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
               year: 'numeric'
             });
 
+            const groupMeetings = groupedMeetings[dateKey];
+            const times = groupMeetings
+              .map(m => m.time ? `${formatTime12h(m.time)}${m.endTime ? ` - ${formatTime12h(m.endTime)}` : ''}` : '')
+              .filter(Boolean);
+            const timesStr = times.join(', ');
+
             return (
               <section key={dateKey}>
                 <div className="flex items-baseline gap-3 mb-4 pb-3 border-b border-white/[0.06]">
                   <div className="flex flex-col">
                     <span className="text-[15px] font-semibold text-white tracking-tight leading-none">
                       {dayLabel}
+                      {timesStr && (
+                        <span className="text-apple-secondary font-normal text-[13.5px] ml-2.5">
+                          · {timesStr}
+                        </span>
+                      )}
                       {isT && (
                         <span className="ml-2 text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-accent-soft text-emerald-400/80">
                           Now
@@ -462,7 +472,7 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
                 </div>
 
                 <div className="space-y-3">
-                  {groupedMeetings[dateKey].map(meet => {
+                  {groupMeetings.map(meet => {
                     const isUrl = meet.locationLink?.startsWith('http');
 
                     return (
@@ -499,7 +509,7 @@ export const Meetings: React.FC<MeetingsProps> = ({ newMeetingTrigger }) => {
                                 {meet.time && (
                                   <>
                                     <span className="text-apple-tertiary text-[10px]">·</span>
-                                    <span className="text-[12px] text-white/90 inline-flex items-center gap-1 font-mono">
+                                    <span className="text-[12px] text-white/90 inline-flex items-center gap-1">
                                       <Clock size={11} className="text-apple-tertiary" />
                                       <span>
                                         {formatTime12h(meet.time)}

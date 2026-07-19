@@ -105,7 +105,16 @@ const SilkPlane = forwardRef<THREE.Mesh, SilkPlaneProps>(function SilkPlane(
     </mesh>
   );
 });
-SilkPlane.displayName = 'SilkPlane';
+const RenderNotifier = ({ onFirstFrame }: { onFirstFrame: () => void }) => {
+  const rendered = useRef(false);
+  useFrame(() => {
+    if (!rendered.current) {
+      rendered.current = true;
+      onFirstFrame();
+    }
+  });
+  return null;
+};
 
 export interface SilkProps {
   speed?: number;
@@ -126,6 +135,7 @@ const Silk = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Respect reduced motion preference
   useEffect(() => {
@@ -169,7 +179,11 @@ const Silk = ({
   }
 
   return (
-    <div ref={containerRef} className="silk-container" aria-hidden="true">
+    <div 
+      ref={containerRef} 
+      className={`silk-container transition-opacity duration-700 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+      aria-hidden="true"
+    >
       <Canvas
         dpr={[1, 2]}
         frameloop={visible ? 'always' : 'never'}
@@ -177,6 +191,7 @@ const Silk = ({
         camera={{ position: [0, 0, 1] }}
       >
         <SilkPlane ref={meshRef} uniforms={uniforms} />
+        <RenderNotifier onFirstFrame={() => setIsLoaded(true)} />
       </Canvas>
     </div>
   );

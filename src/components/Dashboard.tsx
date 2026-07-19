@@ -228,7 +228,11 @@ export const Dashboard: React.FC = () => {
                 })}
                 <div className="h-px bg-white/[0.06] my-1" />
                 <button
-                  onClick={() => { setRole(null); navigate('/'); }}
+                  onClick={() => {
+                    localStorage.removeItem('screen_portal_authorized');
+                    setRole(null);
+                    window.location.reload();
+                  }}
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/[0.04] transition-colors text-left text-apple-gray hover:text-white"
                 >
                   <LogOut size={13} />

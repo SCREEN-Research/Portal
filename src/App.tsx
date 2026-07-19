@@ -1,11 +1,21 @@
+import { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { WorkspaceProvider } from './context/WorkspaceContext';
 import { Dashboard } from './components/Dashboard';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Landing } from './components/Landing';
 import { ToastProvider } from './components/ui/Toast';
+import { LockScreen } from './components/LockScreen';
 
 const AppContent = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('screen_portal_authorized') === 'true';
+  });
+
+  if (!isAuthenticated) {
+    return <LockScreen onAuthenticate={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <Router>
       <Routes>

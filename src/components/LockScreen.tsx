@@ -83,7 +83,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
           <img
             src="picture1.png"
             alt="SCREEN Logo"
-            className="w-32 h-32 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] mb-4"
+            className="w-36 h-36 sm:w-48 sm:h-48 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] mb-4"
           />
           <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-white">
             SCREEN Research Portal

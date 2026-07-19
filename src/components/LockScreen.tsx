@@ -14,6 +14,9 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // Preload Silk background animation bundle in the background while typing the password
+    import('./ui/Silk').catch(() => {});
+
     if (inputRef.current) {
       inputRef.current.focus();
     }

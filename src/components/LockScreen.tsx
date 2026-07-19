@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { Lock, Eye, EyeOff, ArrowRight, AlertCircle, Sparkles } from 'lucide-react';
+import { Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
 import Noise from './ui/Noise';
 
 // Lazy-load the WebGL shader so the main bundle stays light.
@@ -83,14 +83,8 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
           <img
             src="picture1.png"
             alt="SCREEN Logo"
-            className="w-20 h-20 object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] mb-3"
+            className="w-32 h-32 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] mb-4"
           />
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.08] border border-white/[0.12] mb-2 backdrop-blur-md">
-            <Sparkles size={10} className="text-white/70" />
-            <span className="text-[10px] font-mono tracking-wider text-white/80 uppercase">
-              Secure Research Environment
-            </span>
-          </div>
           <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-white">
             SCREEN Research Portal
           </h1>

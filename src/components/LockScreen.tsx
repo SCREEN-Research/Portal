@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
-import Noise from './ui/Noise';
 
 // Lazy-load the WebGL shader so the main bundle stays light.
 const Silk = lazy(() => import('./ui/Silk'));
@@ -45,22 +44,14 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-apple-base text-white flex flex-col select-none">
-      {/* Noise background */}
-      <Noise 
-        patternSize={250}
-        patternScaleX={2}
-        patternScaleY={2}
-        patternRefreshInterval={2}
-        patternAlpha={12}
-      />
-
-      {/* Silk background - rendered with low opacity for subtle ambiance */}
-      <div className="absolute inset-0 z-0 opacity-25">
-        <Suspense fallback={<div className="absolute inset-0 bg-[#0a1a10]" />}>
+      
+      {/* Silk background - matching Landing page quality and settings, with custom gray-green color */}
+      <div className="absolute inset-0 z-0 opacity-90">
+        <Suspense fallback={<div className="absolute inset-0 bg-apple-base" />}>
           <Silk
-            speed={3}
+            speed={4}
             scale={1.2}
-            color="#14532d"
+            color="#22332a"
             noiseIntensity={1.5}
             rotation={0}
           />
@@ -81,12 +72,12 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
       {/* Main Viewport Centered Content */}
       <main className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 w-full max-w-[400px] mx-auto z-10">
         
-        {/* LOGO AREA - Lifted logo slightly higher and added breathing room for subtitle to avoid compact look */}
+        {/* LOGO AREA - Precise 6px margin-bottom between logo and text, and -mt-8 to keep logo positioned higher */}
         <div className="flex flex-col items-center mb-6 fade-in">
           <img
             src="picture1.png"
             alt="SCREEN Logo"
-            className="w-36 h-36 sm:w-48 sm:h-48 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] -mt-8 mb-2 sm:mb-3"
+            className="w-36 h-36 sm:w-48 sm:h-48 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] -mt-8 mb-[6px]"
           />
           <h1 className="text-[20px] font-semibold tracking-[-0.035em] text-white leading-none text-center">
             SCREEN Research Portal
@@ -96,7 +87,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
           </p>
         </div>
 
-        {/* PASSWORD BOX - Enhanced transparency (bg-white/[0.02]), blur (backdrop-blur-xl), and rounded corners (rounded-14) */}
+        {/* PASSWORD BOX - Translucent glassmorphism card */}
         <div 
           className={`w-full bg-white/[0.02] border ${error ? 'border-red-500/50' : 'border-white/[0.06]'} hover:border-white/[0.12] rounded-14 p-5 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-300 fade-in-delayed`}
         >

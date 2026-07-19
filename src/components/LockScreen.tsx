@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
-
-// Lazy-load the WebGL shader so the main bundle stays light.
-const ColorBends = lazy(() => import('./ui/ColorBends'));
+import Dither from './ui/Dither';
 
 interface LockScreenProps {
   onAuthenticate: () => void;
@@ -45,21 +43,19 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
   return (
     <div className="relative h-screen w-full overflow-hidden bg-[#0c0d0e] text-white flex flex-col select-none">
       
-      {/* ColorBends background - interactive grey-green environment (no noise, pure digital fluid) */}
-      <div className="absolute inset-0 z-0">
-        <Suspense fallback={<div className="absolute inset-0 bg-[#0c0d0e]" />}>
-          <ColorBends
-            speed={0.15}
-            scale={0.9}
-            frequency={0.8}
-            warpStrength={0.8}
-            mouseInfluence={1.2}
-            parallax={0.3}
-            colors={['#0c0d0e', '#131e18', '#1c2e24', '#22382c']}
-            transparent={false}
-            intensity={1.1}
-          />
-        </Suspense>
+      {/* Dither background - low-opacity interactive grey-green waves */}
+      <div className="absolute inset-0 z-0 opacity-25">
+        <Dither
+          waveColor="#15261d"
+          disableAnimation={false}
+          enableMouseInteraction={true}
+          mouseRadius={0.25}
+          colorNum={4}
+          waveAmplitude={0.22}
+          waveFrequency={2.5}
+          waveSpeed={0.03}
+          pixelSize={2}
+        />
         {/* Subtle top→bottom darkening for legibility on top of the shader */}
         <div
           aria-hidden="true"
@@ -76,12 +72,12 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
       {/* Main Viewport Centered Content */}
       <main className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 w-full max-w-[400px] mx-auto z-10">
         
-        {/* LOGO AREA - Precise 3px margin-bottom between logo and text, logo moved higher using -mt-12 to avoid compacted look */}
+        {/* LOGO AREA - Halved negative bottom margin (-mb-4 sm:-mb-7) to perfectly offset internal image padding without looking compacted */}
         <div className="flex flex-col items-center mb-6 fade-in">
           <img
             src="picture1.png"
             alt="SCREEN Logo"
-            className="w-36 h-36 sm:w-48 sm:h-48 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] -mt-12 mb-[3px]"
+            className="w-36 h-36 sm:w-48 sm:h-48 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] -mt-8 -mb-4 sm:-mb-7"
           />
           <h1 className="text-[20px] font-semibold tracking-[-0.035em] text-white leading-none text-center">
             SCREEN Research Portal
@@ -91,7 +87,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
           </p>
         </div>
 
-        {/* PASSWORD BOX - Enhanced transparency (bg-white/[0.02]), blur (backdrop-blur-xl), and rounded corners (rounded-14) */}
+        {/* PASSWORD BOX - Translucent glassmorphism card */}
         <div 
           className={`w-full bg-white/[0.02] border ${error ? 'border-red-500/50' : 'border-white/[0.06]'} hover:border-white/[0.12] rounded-14 p-5 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-300 fade-in-delayed`}
         >

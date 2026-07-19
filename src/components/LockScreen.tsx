@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
 
 // Lazy-load the WebGL shader so the main bundle stays light.
-const Silk = lazy(() => import('./ui/Silk'));
+const ColorBends = lazy(() => import('./ui/ColorBends'));
 
 interface LockScreenProps {
   onAuthenticate: () => void;
@@ -43,23 +43,27 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-apple-base text-white flex flex-col select-none">
+    <div className="relative h-screen w-full overflow-hidden bg-[#0c0d0e] text-white flex flex-col select-none">
       
-      {/* Silk background - matching Landing page quality and settings, with custom gray-green color */}
-      <div className="absolute inset-0 z-0 opacity-90">
-        <Suspense fallback={<div className="absolute inset-0 bg-apple-base" />}>
-          <Silk
-            speed={4}
-            scale={1.2}
-            color="#22332a"
-            noiseIntensity={1.5}
-            rotation={0}
+      {/* ColorBends background - interactive grey-green environment (no noise, pure digital fluid) */}
+      <div className="absolute inset-0 z-0">
+        <Suspense fallback={<div className="absolute inset-0 bg-[#0c0d0e]" />}>
+          <ColorBends
+            speed={0.15}
+            scale={0.9}
+            frequency={0.8}
+            warpStrength={0.8}
+            mouseInfluence={1.2}
+            parallax={0.3}
+            colors={['#0c0d0e', '#131e18', '#1c2e24', '#22382c']}
+            transparent={false}
+            intensity={1.1}
           />
         </Suspense>
         {/* Subtle top→bottom darkening for legibility on top of the shader */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50 pointer-events-none"
+          className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none"
         />
       </div>
 
@@ -72,12 +76,12 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
       {/* Main Viewport Centered Content */}
       <main className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 w-full max-w-[400px] mx-auto z-10">
         
-        {/* LOGO AREA - Precise 6px margin-bottom between logo and text, and -mt-8 to keep logo positioned higher */}
+        {/* LOGO AREA - Precise 3px margin-bottom between logo and text, logo moved higher using -mt-12 to avoid compacted look */}
         <div className="flex flex-col items-center mb-6 fade-in">
           <img
             src="picture1.png"
             alt="SCREEN Logo"
-            className="w-36 h-36 sm:w-48 sm:h-48 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] -mt-8 mb-[6px]"
+            className="w-36 h-36 sm:w-48 sm:h-48 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] -mt-12 mb-[3px]"
           />
           <h1 className="text-[20px] font-semibold tracking-[-0.035em] text-white leading-none text-center">
             SCREEN Research Portal
@@ -87,7 +91,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
           </p>
         </div>
 
-        {/* PASSWORD BOX - Translucent glassmorphism card */}
+        {/* PASSWORD BOX - Enhanced transparency (bg-white/[0.02]), blur (backdrop-blur-xl), and rounded corners (rounded-14) */}
         <div 
           className={`w-full bg-white/[0.02] border ${error ? 'border-red-500/50' : 'border-white/[0.06]'} hover:border-white/[0.12] rounded-14 p-5 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-300 fade-in-delayed`}
         >

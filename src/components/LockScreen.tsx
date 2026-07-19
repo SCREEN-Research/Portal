@@ -48,12 +48,12 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
         <Dither
           waveColor="#15261d"
           disableAnimation={false}
-          enableMouseInteraction={true}
+          enableMouseInteraction={false}
           mouseRadius={0.25}
           colorNum={4}
-          waveAmplitude={0.22}
-          waveFrequency={2.5}
-          waveSpeed={0.03}
+          waveAmplitude={0.32}
+          waveFrequency={3.5}
+          waveSpeed={0.06}
           pixelSize={2}
         />
         {/* Subtle top→bottom darkening for legibility on top of the shader */}
@@ -72,12 +72,12 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
       {/* Main Viewport Centered Content */}
       <main className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 w-full max-w-[400px] mx-auto z-10">
         
-        {/* LOGO AREA - Halved negative bottom margin (-mb-4 sm:-mb-7) to perfectly offset internal image padding without looking compacted */}
+        {/* LOGO AREA - Halved visual gap again using -mb-7 sm:-mb-11 */}
         <div className="flex flex-col items-center mb-6 fade-in">
           <img
             src="picture1.png"
             alt="SCREEN Logo"
-            className="w-36 h-36 sm:w-48 sm:h-48 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] -mt-8 -mb-4 sm:-mb-7"
+            className="w-36 h-36 sm:w-48 sm:h-48 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] -mt-8 -mb-7 sm:-mb-11"
           />
           <h1 className="text-[20px] font-semibold tracking-[-0.035em] text-white leading-none text-center">
             SCREEN Research Portal

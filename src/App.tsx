@@ -8,9 +8,7 @@ import { ToastProvider } from './components/ui/Toast';
 import { LockScreen } from './components/LockScreen';
 
 const AppContent = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('screen_portal_authorized') === 'true';
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   if (!isAuthenticated) {
     return <LockScreen onAuthenticate={() => setIsAuthenticated(true)} />;

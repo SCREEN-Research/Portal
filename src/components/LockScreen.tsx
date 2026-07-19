@@ -32,7 +32,6 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
     // Simulate verification delay for visual feedback
     setTimeout(() => {
       if (password === 'SCREEN@2026!') {
-        localStorage.setItem('screen_portal_authorized', 'true');
         onAuthenticate();
       } else {
         setError(true);

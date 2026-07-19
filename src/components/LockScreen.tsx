@@ -53,7 +53,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
 
       {/* Subtle central glow to make the black background look deep and impressive */}
       <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-accent/4 blur-[140px] pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] rounded-full bg-accent/[0.08] blur-[120px] pointer-events-none"
         aria-hidden="true"
       />
 
@@ -65,25 +65,25 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
           <img
             src="picture1.png"
             alt="SCREEN Logo"
-            className="w-36 h-36 sm:w-48 sm:h-48 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] -mb-8 sm:-mb-14"
+            className="w-36 h-36 sm:w-48 sm:h-48 object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] -mt-6 -mb-8 sm:-mb-14"
           />
           <h1 className="text-[20px] font-semibold tracking-[-0.035em] text-white leading-none text-center">
             SCREEN Research Portal
           </h1>
-          <p className="text-[10.5px] text-white/40 tracking-[0.2em] uppercase font-mono text-center mt-2">
+          <p className="text-[10.5px] text-white/40 tracking-[0.2em] uppercase text-center mt-2">
             Authorized Access Only
           </p>
         </div>
 
         {/* PASSWORD BOX - Using premium matching dark surface panel */}
         <div 
-          className={`w-full bg-apple-surface border ${error ? 'border-red-500/50' : 'border-apple-border'} hover:border-white/[0.04] rounded-10 p-5 shadow-[0_12px_36px_rgba(0,0,0,0.5)] transition-all duration-300 fade-in-delayed`}
+          className={`w-full bg-white/[0.04] border ${error ? 'border-red-500/50' : 'border-white/[0.08]'} hover:border-white/[0.15] rounded-10 p-5 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-md transition-all duration-300 fade-in-delayed`}
         >
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label 
                 htmlFor="access-key" 
-                className="block text-[10px] font-mono uppercase tracking-[0.15em] text-white/40"
+                className="block text-[10px] uppercase tracking-[0.15em] text-white/40"
               >
                 Access Key
               </label>
@@ -139,7 +139,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onAuthenticate }) => {
       </main>
 
       {/* Footer */}
-      <footer className="px-6 py-6 shrink-0 text-center text-[10.5px] font-mono text-apple-tertiary tracking-wider uppercase relative z-10">
+      <footer className="px-6 py-6 shrink-0 text-center text-[10.5px] text-apple-tertiary tracking-wider uppercase relative z-10">
         Authorized Access Only • © {new Date().getFullYear()} SCREEN
       </footer>
     </div>

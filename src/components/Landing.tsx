@@ -1,12 +1,10 @@
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkspace } from '../context/WorkspaceContext';
 import type { Role } from '../data/initialState';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
 import Noise from './ui/Noise';
-
-// Lazy-load the WebGL shader so the main bundle stays light.
-const Silk = lazy(() => import('./ui/Silk'));
+import Silk from './ui/Silk';
 
 interface Portal {
   role: Role;
@@ -64,15 +62,13 @@ export const Landing: React.FC = () => {
 
       {/* Silk background */}
       <div className="absolute inset-0 z-0 opacity-90">
-        <Suspense fallback={<div className="absolute inset-0 bg-[#0a1a10]" />}>
-          <Silk
-            speed={4}
-            scale={1.2}
-            color="#14532d"
-            noiseIntensity={1.5}
-            rotation={0}
-          />
-        </Suspense>
+        <Silk
+          speed={4}
+          scale={1.2}
+          color="#14532d"
+          noiseIntensity={1.5}
+          rotation={0}
+        />
         {/* Subtle top→bottom darkening for legibility on top of the shader */}
         <div
           aria-hidden="true"

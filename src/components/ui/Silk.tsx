@@ -181,7 +181,7 @@ const Silk = ({
   return (
     <div 
       ref={containerRef} 
-      className={`silk-container transition-opacity duration-700 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+      className={`silk-container transition-opacity duration-[1800ms] ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
       aria-hidden="true"
     >
       <Canvas
